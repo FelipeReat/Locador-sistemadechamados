@@ -49,14 +49,14 @@ let redisSubscriber: Redis | MockRedis;
 try {
   redis = new Redis(REDIS_URL, {
     enableReadyCheck: false,
-    maxRetriesPerRequest: 1,
+    maxRetriesPerRequest: null, // Required for BullMQ
     connectTimeout: 2000,
     lazyConnect: true,
   });
 
   redisSubscriber = new Redis(REDIS_URL, {
     enableReadyCheck: false,
-    maxRetriesPerRequest: 1,
+    maxRetriesPerRequest: null, // Required for BullMQ
     connectTimeout: 2000,
     lazyConnect: true,
   });
@@ -80,5 +80,21 @@ if (!redis) {
   redisSubscriber = new MockRedis();
 }
 
+// Check if Redis is available by testing connection
+export let isRedisAvailable = false;
+
+// Test Redis connection
+if (redis && typeof (redis as any).ping === 'function') {
+  try {
+    (redis as any).ping().then(() => {
+      isRedisAvailable = true;
+    }).catch(() => {
+      isRedisAvailable = false;
+    });
+  } catch (error) {
+    isRedisAvailable = false;
+  }
+}
+
 export default redis;
-export { redisSubscriber };
+export { redis, redisSubscriber };
