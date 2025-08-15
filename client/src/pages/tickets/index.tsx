@@ -17,12 +17,29 @@ import {
 } from "lucide-react";
 import { useAuthenticatedQuery, useAuthenticatedMutation } from "@/hooks/use-api";
 import { formatDateTime, PRIORITY_LABELS, STATUS_LABELS } from "@/lib/constants";
+
+// Status colors mapping
+const STATUS_COLORS = {
+  'NEW': 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
+  'IN_PROGRESS': 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200',
+  'RESOLVED': 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
+  'CLOSED': 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200',
+};
+
+// Priority colors mapping  
+const PRIORITY_COLORS = {
+  'P1': 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200',
+  'P2': 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200', 
+  'P3': 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200',
+  'P4': 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
+  'P5': 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200',
+};
 import { useToast } from "@/hooks/use-toast";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import Link from "next/link";
+// Removed Next.js Link import - using wouter's Link instead
 
 export default function TicketsIndexPage() {
   const [, setLocation] = useLocation();
@@ -118,11 +135,9 @@ export default function TicketsIndexPage() {
           Chamados
         </h1>
         <div className="flex items-center space-x-2">
-          <Button asChild>
-            <Link href="/tickets/new">
-              <Plus className="w-4 h-4 mr-2" />
-              Novo Chamado
-            </Link>
+          <Button onClick={() => setLocation("/tickets/new")}>
+            <Plus className="w-4 h-4 mr-2" />
+            Novo Chamado
           </Button>
           <Button variant="outline" onClick={handleExportTickets}>
             <Download className="w-4 h-4 mr-2" />
