@@ -1,0 +1,183 @@
+Você é um agente de engenharia full‑stack. Crie um sistema de chamados corporativo (Service Desk) completo, com backend, frontend web e jobs de automação. Use:
+
+- Linguagem: TypeScript
+- Backend: Express + Prisma + Zod + pino (logs) + nodemailer + bullmq (jobs) + jsonwebtoken (auth JWT) + passport (OIDC); Storage S3‑compatível
+- DB: PostgreSQL (Prisma ORM)
+- Cache/queue: Redis
+- Frontend: React + Vite + React Router + TanStack Query + Tailwind + shadcn/ui
+- Infra (dev): docker-compose para Postgres e Redis
+- Testes: Vitest + Supertest (API), Playwright (E2E web)
+- CI: GitHub Actions (lint, test, build)
+- Licença: MIT
+
+## Estrutura do monorepo
+/ (raiz)
+  apps/
+    api/            # Express + Prisma
+    web/            # React + Vite
+    worker/         # BullMQ (fila)
+  packages/
+    ui/             # componentes compartilhados (shadcn)
+    config/         # tsconfig, eslint, prettier
+  .github/workflows/ci.yml
+  docker-compose.yml
+  README.md
+
+## Funcionalidades (MVP sólido)
+- Autenticação: email+senha e OIDC (Google/Microsoft). MFA opcional (TOTP).
+- RBAC: Admin, Agente, Aprovador, Solicitante, Auditor (somente leitura).
+- Multilocação: organizações + unidades/departamentos; times de atendimento.
+- Catálogo de serviços: categorias/subcategorias, formulários dinâmicos por tipo de chamado.
+- Chamados (tickets): criar, atribuir, comentar, anexar arquivos, mencionar usuários, relacionar tickets (duplicado, dependência), histórico e trilha de auditoria.
+- SLA: prioridades (P1–P5), metas de resposta/solução com relógio que pausa em espera do cliente, calendário útil e feriados.
+- Automação: regras “se/então” (ex.: ao criar P1 da categoria X → notificar time Y, atribuir agente, escalar se 30 min).
+- Aprovação: etapa de aprovação por gestor/área antes do atendimento (opcional por tipo de chamado).
+- Base de conhecimento: artigos com categorias, versionamento, estados (rascunho, revisão, publicado).
+- Relatórios & dashboards: volume por categoria/tempo, SLA cumprido/violado, backlog, produtividade do agente, CSAT.
+- Notificações: email + webhook; preferências por usuário; templates.
+- Integrações: Webhooks de eventos; email‑in (criar ticket por email), SSO OIDC; (fase 2: Slack/Teams).
+- Acessibilidade (WCAG AA) e i18n (pt‑BR en-US).
+- LGPD: consentimento, retenção e descarte; export de dados do usuário.
+
+## Fluxos principais
+1) Abertura: solicitante escolhe serviço → preenche formulário → ticket criado em “Novo”.
+2) Triagem: regras + roteamento para time; agente assume; status vira “Em andamento”.
+3) Aprovação (se aplicável): ticket entra em “Aguardando aprovação”. Se aprovado, segue; se reprovado, fecha como “Não aprovado”.
+4) Comunicação: comentários privados (internos) e públicos (cliente); anexos; menções @.
+5) Escalonamento: por violação ou regra (nível 1→2→3).
+6) Resolução: agente posta solução; status “Resolvido”; inicia CSAT.
+7) Fechamento: automático após X dias sem resposta do cliente ou manual; status “Fechado”.
+
+## Modelo de estados do Ticket
+Estados: NEW → TRIAGE → IN_PROGRESS → WAITING_CUSTOMER → WAITING_APPROVAL → ON_HOLD → RESOLVED → CLOSED → CANCELED  
+Transições válidas e guarda (guards) no código (State Machine simples).
+
+## Requisitos não‑funcionais
+- Segurança: OWASP ASVS nível básico+, rate‑limit por IP/rota, CSRF no frontend, CSP, criptografia de senhas (bcrypt), segredos via env.
+- Logs & auditoria: pino JSON estruturado; trilha por ticket e por usuário (quem/quando/o que).
+- Observabilidade: métricas Prometheus (req/s, latência, filas, SLAs), healthcheck /healthz e /readyz.
+- Desempenho: N+1 queries evitadas; índices nas colunas de busca; paginação cursor; cache em Redis.
+- Disponibilidade: projeto pronto para escalar horizontalmente; idempotência em webhooks.
+- Backups: dump diário do Postgres; retenção 30 dias.
+- LGPD: termos/consentimento, privacy by design, minimização de dados, exclusão/anonimização.
+
+## Banco de Dados (Prisma schema aproximado)
+Modelos principais: Organization, Department, Team, User, Role, Membership, ServiceCatalog, ServiceFormField, Ticket, TicketEvent, TicketComment, Attachment, SLA, SLAClock, AutomationRule, Approval, KnowledgeArticle, Tag, WebhookEndpoint, Notification, CSATSurvey.
+
+### Prisma (resumo)
+- Organization { id, name, domain }
+- User { id, orgId, email (unique), name, hash, mfaSecret?, locale, timeZone, isActive }
+- Membership { id, userId, teamId, roles: enum[ADMIN,AGENT,APPROVER,REQUESTER,AUDITOR] }
+- ServiceCatalog { id, orgId, name, category, subcategory, defaultPriority, requiresApproval, formJson }
+- Ticket { id, orgId, code, requesterId, assigneeId?, teamId?, catalogId, priority enum[P1..P5], status enum, subject, description, customFieldsJson, dueAt?, createdAt, updatedAt, closedAt? }
+- TicketComment { id, ticketId, authorId, visibility enum[PUBLIC,INTERNAL], body, createdAt }
+- Attachment { id, ticketId?, commentId?, key, filename, size, contentType, uploaderId, createdAt }
+- SLA { id, orgId, name, appliesToJson, firstResponseMins, resolutionMins, calendarJson }
+- SLAClock { id, ticketId, startedAt, pausedAt?, stoppedAt?, type enum[FIRST_RESPONSE,RESOLUTION] }
+- AutomationRule { id, orgId, name, isActive, triggersJson, conditionsJson, actionsJson }
+- Approval { id, ticketId, approverId, status enum[PENDING,APPROVED,REJECTED], comment?, decidedAt? }
+- KnowledgeArticle { id, orgId, title, slug, body, status enum[DRAFT,REVIEW,PUBLISHED], version, createdById, updatedById, tags[] }
+- WebhookEndpoint { id, orgId, url, secret, isActive, events[] }
+- Notification { id, userId, channel enum[EMAIL,WEBHOOK], templateKey, payloadJson, sentAt? }
+- CSATSurvey { id, ticketId, requesterId, score int 1..5, comment?, createdAt }
+
+## API (OpenAPI 3.1 – extrato essencial)
+Gere um arquivo `apps/api/openapi.yaml` com rotas:
+
+- Auth
+  - POST /auth/register
+  - POST /auth/login
+  - POST /auth/oidc/callback
+  - POST /auth/mfa/enable, /auth/mfa/verify
+- Users & Orgs
+  - GET /me
+  - GET /orgs/:id/users
+  - POST /orgs/:id/invite
+- Catálogo
+  - GET /catalog
+  - POST /catalog
+  - GET /catalog/:id
+  - PATCH /catalog/:id
+- Tickets
+  - GET /tickets (query: status, priority, teamId, search, page, cursor)
+  - POST /tickets
+  - GET /tickets/:id
+  - PATCH /tickets/:id (status, assigneeId, customFieldsJson, priority)
+  - POST /tickets/:id/comments
+  - POST /tickets/:id/attachments (S3 presigned)
+  - POST /tickets/:id/transition (state)
+  - POST /tickets/:id/approval (request), /tickets/:id/approval/:approvalId/decision
+- SLA
+  - GET /sla
+  - POST /sla
+- Automations
+  - GET /automations
+  - POST /automations/test (dry‑run)
+- Knowledge
+  - GET /kb
+  - GET /kb/:slug
+  - POST /kb
+- Webhooks
+  - POST /webhooks/incoming/email   # criar ticket via email parseado
+  - POST /webhooks/outgoing/test    # para testar endpoints cadastrados
+- Relatórios
+  - GET /reports/overview?from=&to=
+  - GET /reports/sla
+  - GET /reports/agents
+
+Inclua schemas Zod para validação e geração de tipos.
+
+## RBAC (matriz resumida)
+- Admin: tudo na org.
+- Agente: ler/criar/editar tickets do time, comentários internos/públicos, KB rascunho.
+- Aprovador: decidir aprovações atribuídas.
+- Solicitante: abrir e acompanhar tickets próprios, comentar público, CSAT.
+- Auditor: leitura de tudo, sem editar.
+
+## SLA (regras padrão)
+- Prioridades:
+  - P1: resposta 15 min, solução 4 h
+  - P2: resposta 30 min, solução 8 h
+  - P3: resposta 4 h,  solução 2 d úteis
+  - P4: resposta 1 d útil, solução 5 d úteis
+  - P5: resposta 2 d úteis, solução 10 d úteis
+- Calendário útil por time, feriados por país/estado; relógio pausa em WAITING_CUSTOMER e ON_HOLD.
+
+## Automations (exemplos em JSON)
+- Trigger: TICKET_CREATED; Conditions: category=“Infra/Email”; Actions: assign team=“Suporte N1”, notify channel=email, set priority=P2
+- Trigger: SLA_BREACH_IMMINENT (RESOLUTION < 30min); Action: escalate team=“N2”, notify @gestor
+
+## Frontend (telas)
+- Login/SSO; Esqueci senha; MFA.
+- Catálogo de serviços com busca/filtro; formulário dinâmico.
+- Minhas solicitações; Detalhe do ticket (timeline, comentários, anexos, aprovações).
+- Fila do agente (kanban por status); Modo foco do agente.
+- Configurações: equipes, usuários, papéis, catálogo, SLAs, automações, webhooks.
+- Relatórios: gráficos de SLA, volume, produtividade, CSAT.
+- Base de conhecimento com editor rich‑text (tip‑tap/markdown) e controle de versão.
+
+## Notificações (templates)
+- ticket_created_subject: “[{org}] Chamado #{code} criado: {subject}”
+- ticket_updated_subject: “[{org}] Chamado #{code} atualizado ({status})”
+- approval_request_subject: “Aprovação pendente para o chamado #{code}”
+- csat_request_subject: “Avalie nosso atendimento do chamado #{code}”
+Corpo HTML com placeholders e versão texto.
+
+## Arquivos principais que você deve gerar
+- docker-compose.yml (Postgres, Redis)
+- apps/api/src/index.ts (Express + rotas)
+- apps/api/prisma/schema.prisma + seed.ts
+- apps/api/src/auth/* (JWT, OIDC, MFA)
+- apps/api/src/modules/* (tickets, catalog, sla, automations, kb, webhooks)
+- apps/worker/src/queues/* (jobs SLA, notificações, escalonamento)
+- apps/web/src/* (páginas, componentes, tema)
+- packages/ui/* (botões, tabelas, diagramas)
+- scripts/migrate-and-seed.sh
+- .github/workflows/ci.yml
+- README.md com instruções de setup
+
+## Testes mínimos
+- API: criação de usuário/org, login, criação de catalog, criação de ticket, comentário público e interno, transições de estado, regra de automação dry‑run, cálculo de SLA (pausa/retoma), webhook de saída assinado (HMAC).
+- Web: abrir ticket pelo catálogo; fluxo do agente (assumir, comentar interno, resolver), aprovação, CSAT.
+
+Implemente tudo com qualidade de produção, bons logs e tratamento de erros. Gere dados seed realizáveis (uma org “Acme S/A”, 2 times, 5 usuários, 12 itens de catálogo, 50 tickets). Produza também documentação no README com curl examples e instruções de ambiente (.env.example).
