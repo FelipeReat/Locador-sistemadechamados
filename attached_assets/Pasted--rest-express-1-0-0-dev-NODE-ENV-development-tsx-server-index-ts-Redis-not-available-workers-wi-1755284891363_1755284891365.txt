@@ -1,0 +1,201 @@
+> rest-express@1.0.0 dev
+> NODE_ENV=development tsx server/index.ts
+
+Redis not available, workers will not be started
+Redis not available, using mock Redis for development
+Redis not available, using mock Redis for development
+7:04:06 PM [express] serving on port 5000
+Redis not available, using mock Redis for development
+Redis not available, using mock Redis for development
+Redis not available, using mock Redis for development
+Redis not available, using mock Redis for development
+Redis not available, using mock Redis for development
+Browserslist: browsers data (caniuse-lite) is 10 months old. Please run:
+  npx update-browserslist-db@latest
+  Why you should do it regularly: https://github.com/browserslist/update-db#readme
+Redis not available, using mock Redis for development
+Redis not available, using mock Redis for development
+Redis not available, using mock Redis for development
+Redis not available, using mock Redis for development
+Redis not available, using mock Redis for development
+Redis not available, using mock Redis for development
+Redis not available, using mock Redis for development
+7:04:15 PM [vite] ✨ new dependencies optimized: @radix-ui/react-checkbox, @radix-ui/react-dialog
+7:04:15 PM [vite] ✨ optimized dependencies changed. reloading
+Redis not available, using mock Redis for development
+Redis not available, using mock Redis for development
+Redis not available, using mock Redis for development
+Redis not available, using mock Redis for development
+Redis not available, using mock Redis for development
+Redis not available, using mock Redis for development
+Redis not available, using mock Redis for development
+Redis not available, using mock Redis for development
+Redis not available, using mock Redis for development
+Redis not available, using mock Redis for development
+Redis not available, using mock Redis for development
+Redis not available, using mock Redis for development
+Redis not available, using mock Redis for development
+Redis not available, using mock Redis for development
+Redis not available, using mock Redis for development
+Redis not available, using mock Redis for development
+Redis not available, using mock Redis for development
+Redis not available, using mock Redis for development
+Redis not available, using mock Redis for development
+Redis not available, using mock Redis for development
+Redis not available, using mock Redis for development
+Redis not available, using mock Redis for development
+Redis not available, using mock Redis for development
+Redis not available, using mock Redis for development
+Redis not available, using mock Redis for development
+Redis not available, using mock Redis for development
+Redis not available, using mock Redis for development
+Redis not available, using mock Redis for development
+Redis not available, using mock Redis for development
+7:04:56 PM [express] GET /api/catalog 401 in 2ms :: {"message":"Access token required"}
+Redis not available, using mock Redis for development
+Redis not available, using mock Redis for development
+Redis not available, using mock Redis for development
+Redis not available, using mock Redis for development
+Redis not available, using mock Redis for development
+Redis not available, using mock Redis for development
+Redis not available, using mock Redis for development
+Redis not available, using mock Redis for development
+Redis not available, using mock Redis for development
+Redis not available, using mock Redis for development
+Redis not available, using mock Redis for development
+Redis not available, using mock Redis for development
+Redis not available, using mock Redis for development
+Redis not available, using mock Redis for development
+Redis not available, using mock Redis for development
+Redis not available, using mock Redis for development
+Redis not available, using mock Redis for development
+Redis not available, using mock Redis for development
+Redis not available, using mock Redis for development
+Redis not available, using mock Redis for development
+Redis not available, using mock Redis for development
+Redis not available, using mock Redis for development
+Redis not available, using mock Redis for development
+Redis not available, using mock Redis for development
+Redis not available, using mock Redis for development
+Redis not available, using mock Redis for development
+Redis not available, using mock Redis for development
+Redis not available, using mock Redis for development
+Redis not available, using mock Redis for development
+Redis not available, using mock Redis for development
+Redis not available, using mock Redis for development
+Redis not available, using mock Redis for development
+Redis not available, using mock Redis for development
+Redis not available, using mock Redis for development
+Redis not available, using mock Redis for development
+Redis not available, using mock Redis for development
+Redis not available, using mock Redis for development
+Redis not available, using mock Redis for development
+Redis not available, using mock Redis for development
+Redis not available, using mock Redis for development
+Redis not available, using mock Redis for development
+Redis not available, using mock Redis for development
+Redis not available, using mock Redis for development
+Redis not available, using mock Redis for development
+Redis not available, using mock Redis for development
+Redis not available, using mock Redis for development
+Redis not available, using mock Redis for development
+Redis not available, using mock Redis for development
+Redis not available, using mock Redis for development
+Redis not available, using mock Redis for development
+Redis not available, using mock Redis for development
+Redis not available, using mock Redis for development
+Redis not available, using mock Redis for development
+Redis not available, using mock Redis for development
+Redis not available, using mock Redis for development
+Redis not available, using mock Redis for development
+Redis not available, using mock Redis for development
+Redis not available, using mock Redis for development
+Redis not available, using mock Redis for development
+Redis not available, using mock Redis for development
+Redis not available, using mock Redis for development
+Redis not available, using mock Redis for development
+Redis not available, using mock Redis for development
+Redis not available, using mock Redis for development
+Redis not available, using mock Redis for development
+Redis not available, using mock Redis for development
+Redis not available, using mock Redis for development
+Redis not available, using mock Redis for development
+Redis not available, using mock Redis for development
+Redis not available, using mock Redis for development
+Redis not available, using mock Redis for development
+Redis not available, using mock Redis for development
+Redis not available, using mock Redis for development
+Redis not available, using mock Redis for development
+Redis not available, using mock Redis for development
+Redis not available, using mock Redis for development
+Redis not available, using mock Redis for development
+Redis not available, using mock Redis for development
+Redis not available, using mock Redis for development
+Redis not available, using mock Redis for development
+Redis not available, using mock Redis for development
+Redis not available, using mock Redis for development
+Redis not available, using mock Redis for development
+Redis not available, using mock Redis for development
+Redis not available, using mock Redis for development
+Redis not available, using mock Redis for development
+Redis not available, using mock Redis for development
+Redis not available, using mock Redis for development
+Redis not available, using mock Redis for development
+7:07:54 PM [vite] hmr update /src/pages/tickets/create.tsx, /src/index.css?v=vYNbf-KXqeMqOjjnc6vtS
+7:07:55 PM [vite] Internal server error: /home/runner/workspace/client/src/pages/tickets/create.tsx: Identifier 'CreateTicket' has already been declared. (337:24)
+
+  335 | type TicketFormData = z.infer<typeof ticketSchema>;
+  336 |
+> 337 | export default function CreateTicket() {
+      |                         ^
+  338 |   const [, setLocation] = useLocation();
+  339 |   const { toast } = useToast();
+  340 |   const queryClient = useQueryClient();
+  Plugin: vite:react-babel
+  File: /home/runner/workspace/client/src/pages/tickets/create.tsx:337:24
+  335|  type TicketFormData = z.infer<typeof ticketSchema>;
+  336|  
+  337|  export default function CreateTicket() {
+     |                          ^
+  338|    const [, setLocation] = useLocation();
+  339|    const { toast } = useToast();
+      at toParseError (/home/runner/workspace/node_modules/@babel/parser/src/parse-error.ts:95:45)
+      at raise (/home/runner/workspace/node_modules/@babel/parser/src/tokenizer/index.ts:1497:19)
+      at checkRedeclarationInScope (/home/runner/workspace/node_modules/@babel/parser/src/util/scope.ts:155:19)
+      at declareName (/home/runner/workspace/node_modules/@babel/parser/src/util/scope.ts:109:12)
+      at declareName (/home/runner/workspace/node_modules/@babel/parser/src/plugins/typescript/scope.ts:89:11)
+      at registerFunctionStatementId (/home/runner/workspace/node_modules/@babel/parser/src/parser/statement.ts:1717:16)
+      at registerFunctionStatementId (/home/runner/workspace/node_modules/@babel/parser/src/plugins/typescript/index.ts:2547:15)
+      at parseFunction (/home/runner/workspace/node_modules/@babel/parser/src/parser/statement.ts:1680:12)
+      at parseExportDefaultExpression (/home/runner/workspace/node_modules/@babel/parser/src/parser/statement.ts:2536:19)
+      at parseExportDefaultExpression (/home/runner/workspace/node_modules/@babel/parser/src/plugins/typescript/index.ts:2998:20)
+      at parseExport (/home/runner/workspace/node_modules/@babel/parser/src/parser/statement.ts:2420:25)
+      at parseExport (/home/runner/workspace/node_modules/@babel/parser/src/plugins/typescript/index.ts:2968:22)
+      at parseStatementContent (/home/runner/workspace/node_modules/@babel/parser/src/parser/statement.ts:610:25)
+      at parseStatementContent (/home/runner/workspace/node_modules/@babel/parser/src/plugins/typescript/index.ts:3056:20)
+      at parseStatementLike (/home/runner/workspace/node_modules/@babel/parser/src/parser/statement.ts:437:17)
+      at parseModuleItem (/home/runner/workspace/node_modules/@babel/parser/src/parser/statement.ts:374:17)
+      at parseBlockOrModuleBlockBody (/home/runner/workspace/node_modules/@babel/parser/src/parser/statement.ts:1419:16)
+      at parseBlockBody (/home/runner/workspace/node_modules/@babel/parser/src/parser/statement.ts:1393:10)
+      at parseProgram (/home/runner/workspace/node_modules/@babel/parser/src/parser/statement.ts:225:10)
+      at parseTopLevel (/home/runner/workspace/node_modules/@babel/parser/src/parser/statement.ts:203:25)
+      at parse (/home/runner/workspace/node_modules/@babel/parser/src/parser/index.ts:90:10)
+      at parse (/home/runner/workspace/node_modules/@babel/parser/src/plugins/typescript/index.ts:4192:20)
+      at parse (/home/runner/workspace/node_modules/@babel/parser/src/index.ts:92:38)
+      at parser (/home/runner/workspace/node_modules/@babel/core/src/parser/index.ts:28:19)
+      at parser.next (<anonymous>)
+      at normalizeFile (/home/runner/workspace/node_modules/@babel/core/src/transformation/normalize-file.ts:50:24)
+      at normalizeFile.next (<anonymous>)
+      at run (/home/runner/workspace/node_modules/@babel/core/src/transformation/index.ts:40:36)
+      at run.next (<anonymous>)
+      at transform (/home/runner/workspace/node_modules/@babel/core/src/transform.ts:29:20)
+      at transform.next (<anonymous>)
+      at step (/home/runner/workspace/node_modules/gensync/index.js:261:32)
+      at /home/runner/workspace/node_modules/gensync/index.js:273:13
+      at async.call.result.err.err (/home/runner/workspace/node_modules/gensync/index.js:223:11)
+      at /home/runner/workspace/node_modules/gensync/index.js:189:28
+      at <anonymous> (/home/runner/workspace/node_modules/@babel/core/src/gensync-utils/async.ts:90:7)
+      at /home/runner/workspace/node_modules/gensync/index.js:113:33
+      at step (/home/runner/workspace/node_modules/gensync/index.js:287:14)
+      at /home/runner/workspace/node_modules/gensync/index.js:273:13
+      at async.call.result.err.err (/home/runner/workspace/node_modules/gensync/index.js:223:11)
