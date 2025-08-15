@@ -187,8 +187,8 @@ export class MemStorage implements IStorage {
       id: "user-1",
       orgId: org.id,
       email: "admin@acme.com",
-      name: "João Silva",
-      password: "$2b$10$hash", // Should be hashed
+      name: "Administrador do Sistema",
+      password: "$2b$10$tedq4kySn0U6sSGCVMCiFuEeqxD31gEv//fw/AZw2syfxKYmQiRo.", // admin123
       mfaSecret: null,
       locale: "pt-BR",
       timeZone: "America/Sao_Paulo",
