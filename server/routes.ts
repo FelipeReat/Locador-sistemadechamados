@@ -24,6 +24,73 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json({ status: "healthy", timestamp: new Date().toISOString() });
   });
 
+  // Create initial admin user (for development)
+  app.post("/api/seed-admin", async (req, res) => {
+    try {
+      // Check if any admin already exists
+      const existingUsers = await storage.getUsersByOrg("*");
+      if (existingUsers.length > 0) {
+        return res.status(400).json({ message: "Admin already exists" });
+      }
+
+      const adminData = {
+        email: "admin@servicedesk.com",
+        password: "admin123",
+        name: "Administrador",
+        orgName: "ServiceDesk Pro",
+        orgDomain: "servicedesk.com"
+      };
+
+      // Create organization
+      const org = await storage.createOrganization({
+        name: adminData.orgName,
+        domain: adminData.orgDomain,
+        isActive: true,
+      });
+
+      // Create admin user
+      const hashedPassword = await hashPassword(adminData.password);
+      const user = await storage.createUser({
+        orgId: org.id,
+        email: adminData.email,
+        name: adminData.name,
+        password: hashedPassword,
+        mfaSecret: null,
+        locale: "pt-BR",
+        timeZone: "America/Sao_Paulo",
+        isActive: true,
+      });
+
+      // Create default team
+      const team = await storage.createTeam({
+        orgId: org.id,
+        departmentId: null,
+        name: "Suporte Geral",
+        description: "Equipe de suporte geral",
+        isActive: true,
+      });
+
+      // Add user as admin
+      await storage.createMembership({
+        userId: user.id,
+        teamId: team.id,
+        roles: ["ADMIN"],
+        isActive: true,
+      });
+
+      res.json({
+        message: "Admin created successfully",
+        credentials: {
+          email: adminData.email,
+          password: adminData.password
+        }
+      });
+    } catch (error) {
+      console.error("Seed admin error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   // Authentication routes
   app.post("/api/auth/register", async (req, res) => {
     try {
