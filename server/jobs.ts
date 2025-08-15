@@ -78,8 +78,14 @@ export interface AutomationJobData {
   context: Record<string, any>;
 }
 
-// Workers
-const notificationWorker = new Worker('notifications', async (job: Job<NotificationJobData>) => {
+// Workers - only create real workers if Redis is available
+let notificationWorker: Worker | null = null;
+let slaWorker: Worker | null = null;
+let automationWorker: Worker | null = null;
+
+try {
+  if (redis && typeof redis.ping === 'function') {
+    notificationWorker = new Worker('notifications', async (job: Job<NotificationJobData>) => {
   const { type, ticketId, userIds, message, templateKey } = job.data;
   
   try {
@@ -135,7 +141,7 @@ const notificationWorker = new Worker('notifications', async (job: Job<Notificat
   }
 }, { connection: redis });
 
-const slaWorker = new Worker('sla-monitoring', async (job: Job<SLAJobData>) => {
+    slaWorker = new Worker('sla-monitoring', async (job: Job<SLAJobData>) => {
   const { ticketId, type, dueAt } = job.data;
   
   try {
@@ -175,7 +181,7 @@ const slaWorker = new Worker('sla-monitoring', async (job: Job<SLAJobData>) => {
   }
 }, { connection: redis });
 
-const automationWorker = new Worker('automations', async (job: Job<AutomationJobData>) => {
+    automationWorker = new Worker('automations', async (job: Job<AutomationJobData>) => {
   const { ruleId, ticketId, trigger, context } = job.data;
   
   try {
@@ -220,6 +226,10 @@ const automationWorker = new Worker('automations', async (job: Job<AutomationJob
     throw error;
   }
 }, { connection: redis });
+  }
+} catch (error) {
+  console.warn('Redis not available, workers will not be started');
+}
 
 // Helper functions
 function generateNotificationEmail(type: string, ticket: any, message: string): string {
@@ -276,7 +286,7 @@ export { notificationQueue as jobQueue };
 
 // Graceful shutdown
 process.on('SIGTERM', async () => {
-  await notificationWorker.close();
-  await slaWorker.close();
-  await automationWorker.close();
+  if (notificationWorker) await notificationWorker.close();
+  if (slaWorker) await slaWorker.close();
+  if (automationWorker) await automationWorker.close();
 });

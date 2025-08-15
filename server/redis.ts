@@ -49,14 +49,14 @@ let redisSubscriber: Redis | MockRedis;
 try {
   redis = new Redis(REDIS_URL, {
     enableReadyCheck: false,
-    maxRetriesPerRequest: 3,
+    maxRetriesPerRequest: null, // Required for BullMQ
     connectTimeout: 5000,
     lazyConnect: true,
   });
 
   redisSubscriber = new Redis(REDIS_URL, {
     enableReadyCheck: false,
-    maxRetriesPerRequest: 3,
+    maxRetriesPerRequest: null, // Required for BullMQ
     connectTimeout: 5000,
     lazyConnect: true,
   });
