@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Plus, Search, Clock, Target, AlertTriangle } from "lucide-react";
 import { useAuthenticatedQuery } from "@/hooks/use-api";
+import CreateSlaModal from "@/components/admin/create-sla-modal";
 
 export default function AdminSLA() {
   const [search, setSearch] = useState("");
@@ -61,10 +62,7 @@ export default function AdminSLA() {
             Defina tempos de resposta e resolução para diferentes tipos de chamados
           </p>
         </div>
-        <Button>
-          <Plus className="w-4 h-4 mr-2" />
-          Nova Regra SLA
-        </Button>
+        <CreateSlaModal />
       </div>
 
       {/* Search */}

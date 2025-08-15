@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { useLocation } from "wouter";
+import { useLocation, useSearch } from "wouter";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -28,6 +28,7 @@ type CreateTicketFormData = z.infer<typeof createTicketSchema>;
 
 export default function CreateTicket() {
   const [, setLocation] = useLocation();
+  const searchParams = useSearch();
   const { toast } = useToast();
   const [selectedCatalogItem, setSelectedCatalogItem] = useState<any>(null);
 
@@ -38,7 +39,7 @@ export default function CreateTicket() {
   const form = useForm<CreateTicketFormData>({
     resolver: zodResolver(createTicketSchema),
     defaultValues: {
-      catalogId: "",
+      catalogId: new URLSearchParams(searchParams).get('catalogId') || "",
       subject: "",
       description: "",
       priority: "P3",

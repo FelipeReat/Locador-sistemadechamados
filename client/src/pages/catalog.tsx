@@ -110,7 +110,7 @@ export default function Catalog() {
 
                 <Button 
                   className="w-full" 
-                  onClick={() => setLocation(`/tickets/new?service=${item.id}`)}
+                  onClick={() => setLocation(`/tickets/create?catalogId=${item.id}`)}
                 >
                   <ShoppingCart className="w-4 h-4 mr-2" />
                   Solicitar

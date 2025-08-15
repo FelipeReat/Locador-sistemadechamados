@@ -7,6 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Switch } from "@/components/ui/switch";
 import { Plus, Search, Settings, Bot, Calendar, Play, Pause } from "lucide-react";
 import { useAuthenticatedQuery } from "@/hooks/use-api";
+import CreateAutomationModal from "@/components/admin/create-automation-modal";
 
 export default function AdminAutomations() {
   const [search, setSearch] = useState("");
@@ -61,10 +62,7 @@ export default function AdminAutomations() {
             Configure regras de automação para agilizar o fluxo de trabalho
           </p>
         </div>
-        <Button>
-          <Plus className="w-4 h-4 mr-2" />
-          Nova Automação
-        </Button>
+        <CreateAutomationModal />
       </div>
 
       {/* Search */}

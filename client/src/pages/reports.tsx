@@ -21,6 +21,7 @@ import {
 import { format, subDays, startOfDay, endOfDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useAuthenticatedQuery } from "@/hooks/use-api";
+import { useToast } from "@/hooks/use-toast";
 
 interface DateRange {
   from: Date;
@@ -34,6 +35,7 @@ const QUICK_RANGES = [
 ];
 
 export default function ReportsPage() {
+  const { toast } = useToast();
   const [dateRange, setDateRange] = useState<DateRange>({
     from: startOfDay(subDays(new Date(), 30)),
     to: endOfDay(new Date()),
@@ -70,6 +72,34 @@ export default function ReportsPage() {
 
   const isLoading = dashboardLoading || slaLoading || volumeLoading;
 
+  const handleExportReport = () => {
+    toast({
+      title: "Exportando relatório",
+      description: "O relatório será baixado em alguns instantes.",
+    });
+    
+    // Simulate report generation
+    const reportData = {
+      period: `${format(dateRange.from, 'dd/MM/yyyy')} - ${format(dateRange.to, 'dd/MM/yyyy')}`,
+      totalTickets: dashboardMetrics?.totalTickets || 0,
+      openTickets: dashboardMetrics?.openTickets || 0,
+      avgResolutionTime: dashboardMetrics?.avgResolutionTime || 0,
+      slaBreaches: dashboardMetrics?.slaBreaches || 0,
+      csatScore: dashboardMetrics?.csatScore || 0,
+      generatedAt: new Date().toISOString(),
+    };
+    
+    const dataStr = JSON.stringify(reportData, null, 2);
+    const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+    
+    const exportFileDefaultName = `relatorio-${format(new Date(), 'yyyy-MM-dd-HH-mm')}.json`;
+    
+    const linkElement = document.createElement('a');
+    linkElement.setAttribute('href', dataUri);
+    linkElement.setAttribute('download', exportFileDefaultName);
+    linkElement.click();
+  };
+
   if (isLoading) {
     return (
       <div className="space-y-6">
@@ -95,7 +125,7 @@ export default function ReportsPage() {
             Análise detalhada do desempenho do service desk
           </p>
         </div>
-        <Button variant="outline" className="gap-2">
+        <Button variant="outline" className="gap-2" onClick={handleExportReport}>
           <Download className="w-4 h-4" />
           Exportar
         </Button>

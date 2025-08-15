@@ -12,12 +12,17 @@ import {
   Filter,
   Eye,
   User,
-  Calendar
+  Calendar,
+  Download
 } from "lucide-react";
-import { useAuthenticatedQuery } from "@/hooks/use-api";
+import { useAuthenticatedQuery, useAuthenticatedMutation } from "@/hooks/use-api";
+import { formatDateTime, PRIORITY_LABELS, STATUS_LABELS } from "@/lib/constants";
+import { useToast } from "@/hooks/use-toast";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { STATUS_LABELS, PRIORITY_LABELS, STATUS_COLORS, PRIORITY_COLORS } from "@/lib/constants";
+import Link from "next/link";
 
 export default function TicketsIndexPage() {
   const [, setLocation] = useLocation();
@@ -29,13 +34,79 @@ export default function TicketsIndexPage() {
     ['tickets'],
     '/tickets'
   );
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  const getPriorityColor = (priority: string) => {
+    const colors = {
+      'P1': 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200',
+      'P2': 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200', 
+      'P3': 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200',
+      'P4': 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
+      'P5': 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200',
+    };
+    return colors[priority as keyof typeof colors] || colors.P3;
+  };
+
+  const takeTicketMutation = useMutation({
+    mutationFn: async (ticketId: string) => {
+      return apiRequest("PATCH", `/api/tickets/${ticketId}/take`, {});
+    },
+    onSuccess: () => {
+      toast({
+        title: "Chamado atribuído",
+        description: "O chamado foi atribuído a você com sucesso.",
+      });
+      queryClient.invalidateQueries({ queryKey: ["tickets"] });
+    },
+    onError: (error) => {
+      toast({
+        title: "Erro ao atribuir chamado",
+        description: error instanceof Error ? error.message : "Erro desconhecido",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleTakeTicket = (ticketId: string) => {
+    takeTicketMutation.mutate(ticketId);
+  };
+
+  const handleExportTickets = () => {
+    toast({
+      title: "Exportando chamados",
+      description: "A lista de chamados será exportada em alguns instantes.",
+    });
+
+    // Simulate export
+    const exportData = {
+      tickets: filteredTickets.length,
+      exported_at: new Date().toISOString(),
+      filters: {
+        search: searchTerm,
+        status: statusFilter,
+        priority: priorityFilter,
+        sort: sortBy,
+      },
+    };
+
+    const dataStr = JSON.stringify(exportData, null, 2);
+    const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+
+    const exportFileDefaultName = `chamados-${format(new Date(), 'yyyy-MM-dd-HH-mm')}.json`;
+
+    const linkElement = document.createElement('a');
+    linkElement.setAttribute('href', dataUri);
+    linkElement.setAttribute('download', exportFileDefaultName);
+    linkElement.click();
+  };
 
   const filteredTickets = tickets.filter((ticket: any) => {
     const matchesSearch = ticket.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          ticket.description?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === "all" || ticket.status === statusFilter;
     const matchesPriority = priorityFilter === "all" || ticket.priority === priorityFilter;
-    
+
     return matchesSearch && matchesStatus && matchesPriority;
   });
 
@@ -46,10 +117,18 @@ export default function TicketsIndexPage() {
         <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">
           Chamados
         </h1>
-        <Button onClick={() => setLocation("/tickets/new")}>
-          <Plus className="w-4 h-4 mr-2" />
-          Novo Chamado
-        </Button>
+        <div className="flex items-center space-x-2">
+          <Button asChild>
+            <Link href="/tickets/new">
+              <Plus className="w-4 h-4 mr-2" />
+              Novo Chamado
+            </Link>
+          </Button>
+          <Button variant="outline" onClick={handleExportTickets}>
+            <Download className="w-4 h-4 mr-2" />
+            Exportar
+          </Button>
+        </div>
       </div>
 
       {/* Filters */}
@@ -71,7 +150,7 @@ export default function TicketsIndexPage() {
                 className="pl-10"
               />
             </div>
-            
+
             <Select value={statusFilter} onValueChange={setStatusFilter}>
               <SelectTrigger>
                 <SelectValue placeholder="Status" />
@@ -147,7 +226,7 @@ export default function TicketsIndexPage() {
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      <Badge className={PRIORITY_COLORS[ticket.priority as keyof typeof PRIORITY_COLORS] || 'bg-gray-100 text-gray-800'}>
+                      <Badge className={getPriorityColor(ticket.priority as keyof typeof PRIORITY_COLORS) || 'bg-gray-100 text-gray-800'}>
                         {PRIORITY_LABELS[ticket.priority as keyof typeof PRIORITY_LABELS] || ticket.priority}
                       </Badge>
                     </TableCell>
@@ -173,6 +252,15 @@ export default function TicketsIndexPage() {
                       >
                         <Eye className="w-4 h-4 mr-2" />
                         Ver
+                      </Button>
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        onClick={() => handleTakeTicket(ticket.id)}
+                        className="ml-2"
+                      >
+                        <User className="w-4 h-4 mr-2" />
+                        Assumir
                       </Button>
                     </TableCell>
                   </TableRow>

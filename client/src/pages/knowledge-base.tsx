@@ -7,9 +7,11 @@ import { Search, BookOpen, Eye, Calendar, User } from "lucide-react";
 import { useAuthenticatedQuery } from "@/hooks/use-api";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { useToast } from "@/hooks/use-toast";
 
 export default function KnowledgeBase() {
   const [searchTerm, setSearchTerm] = useState("");
+  const { toast } = useToast();
 
   const { data: articles = [], isLoading } = useAuthenticatedQuery(
     ['kb'],
@@ -33,6 +35,14 @@ export default function KnowledgeBase() {
       default:
         return <Badge variant="secondary">{status}</Badge>;
     }
+  };
+
+  const handleViewArticle = (articleId: string, title: string) => {
+    toast({
+      title: "Visualizando artigo",
+      description: `Abrindo: ${title}`,
+    });
+    // In a real implementation, this would navigate to article detail page
   };
 
   return (
@@ -145,7 +155,11 @@ export default function KnowledgeBase() {
                   </div>
                 )}
 
-                <Button variant="outline" className="w-full">
+                <Button 
+                  variant="outline" 
+                  className="w-full"
+                  onClick={() => handleViewArticle(article.id, article.title)}
+                >
                   <Eye className="w-4 h-4 mr-2" />
                   Ler artigo
                 </Button>

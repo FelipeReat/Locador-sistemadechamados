@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { PlusIcon, SearchIcon, SettingsIcon, UsersIcon, CalendarIcon } from "lucide-react";
 import { formatDateTime } from "@/lib/constants";
+import CreateTeamModal from "@/components/admin/create-team-modal";
 
 export default function AdminTeams() {
   const [search, setSearch] = useState("");
@@ -39,10 +40,7 @@ export default function AdminTeams() {
           <UsersIcon className="w-8 h-8" />
           <span>Gerenciamento de Equipes</span>
         </h1>
-        <Button>
-          <PlusIcon className="w-4 h-4 mr-2" />
-          Nova Equipe
-        </Button>
+        <CreateTeamModal />
       </div>
 
       {/* Stats Cards */}

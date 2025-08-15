@@ -6,10 +6,16 @@ import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Plus, Search, Users, UserCheck, UserX, Settings } from "lucide-react";
-import { useAuthenticatedQuery } from "@/hooks/use-api";
+import { useAuthenticatedQuery, useAuthenticatedMutation } from "@/hooks/use-api";
+import CreateUserModal from "@/components/admin/create-user-modal";
+import { useToast } from "@/hooks/use-toast";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
 
 export default function AdminUsers() {
   const [search, setSearch] = useState("");
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   const { data: users = [], isLoading } = useAuthenticatedQuery(
     ['users'],
@@ -57,6 +63,37 @@ export default function AdminUsers() {
       .slice(0, 2);
   };
 
+  const toggleUserMutation = useMutation({
+    mutationFn: async ({ userId, isActive }: { userId: string; isActive: boolean }) => {
+      return apiRequest("PATCH", `/api/users/${userId}`, { isActive });
+    },
+    onSuccess: (_, variables) => {
+      toast({
+        title: "Status atualizado",
+        description: `Usuário ${variables.isActive ? 'ativado' : 'desativado'} com sucesso.`,
+      });
+      queryClient.invalidateQueries({ queryKey: ["users"] });
+    },
+    onError: (error) => {
+      toast({
+        title: "Erro ao atualizar status",
+        description: error instanceof Error ? error.message : "Erro desconhecido",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleToggleUser = (userId: string, currentStatus: boolean) => {
+    toggleUserMutation.mutate({ userId, isActive: !currentStatus });
+  };
+
+  const handleEditUser = (userId: string) => {
+    toast({
+      title: "Edição de usuário",
+      description: "Funcionalidade de edição será implementada em breve.",
+    });
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -69,10 +106,7 @@ export default function AdminUsers() {
             Gerencie usuários e suas permissões no sistema
           </p>
         </div>
-        <Button>
-          <Plus className="w-4 h-4 mr-2" />
-          Novo Usuário
-        </Button>
+        <CreateUserModal />
       </div>
 
       {/* Search */}
@@ -190,7 +224,7 @@ export default function AdminUsers() {
                         <Button
                           variant="outline"
                           size="sm"
-                          disabled
+                          onClick={() => handleEditUser(user.id)}
                         >
                           <Settings className="w-3 h-3 mr-1" />
                           Editar
@@ -198,7 +232,8 @@ export default function AdminUsers() {
                         <Button
                           variant="outline"
                           size="sm"
-                          disabled
+                          onClick={() => handleToggleUser(user.id, user.isActive)}
+                          disabled={toggleUserMutation.isPending}
                         >
                           {user.isActive ? 'Desativar' : 'Ativar'}
                         </Button>
