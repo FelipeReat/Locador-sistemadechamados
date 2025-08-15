@@ -737,6 +737,8 @@ export class MemStorage implements IStorage {
       status: insertTicket.status ?? "NEW",
       teamId: insertTicket.teamId ?? null,
       assigneeId: insertTicket.assigneeId ?? null,
+      catalogId: insertTicket.catalogId ?? null,
+      customFieldsJson: insertTicket.customFieldsJson ?? {},
       dueAt: insertTicket.dueAt ?? null,
       resolvedAt: null,
       closedAt: null,
