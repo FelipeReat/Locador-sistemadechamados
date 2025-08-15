@@ -60,7 +60,8 @@ export default function Login() {
         title: "Login realizado com sucesso",
         description: "Bem-vindo ao ServiceDesk Pro!",
       });
-      setLocation("/dashboard");
+      // Force page reload to trigger authentication check
+      window.location.href = "/dashboard";
     } catch (error) {
       toast({
         title: "Erro no login",
@@ -80,7 +81,8 @@ export default function Login() {
         title: "Conta criada com sucesso",
         description: "Bem-vindo ao ServiceDesk Pro!",
       });
-      setLocation("/dashboard");
+      // Force page reload to trigger authentication check
+      window.location.href = "/dashboard";
     } catch (error) {
       toast({
         title: "Erro no registro",
