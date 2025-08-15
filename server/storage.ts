@@ -411,6 +411,10 @@ export class MemStorage implements IStorage {
     const user: User = {
       ...insertUser,
       id,
+      isActive: insertUser.isActive ?? true,
+      mfaSecret: insertUser.mfaSecret ?? null,
+      locale: insertUser.locale ?? null,
+      timeZone: insertUser.timeZone ?? null,
       lastLoginAt: null,
       createdAt: new Date(),
       updatedAt: new Date(),
@@ -477,6 +481,7 @@ export class MemStorage implements IStorage {
     const org: Organization = {
       ...insertOrg,
       id,
+      isActive: insertOrg.isActive ?? true,
       createdAt: new Date(),
       updatedAt: new Date(),
     };
@@ -530,6 +535,9 @@ export class MemStorage implements IStorage {
     const team: Team = {
       ...insertTeam,
       id,
+      isActive: insertTeam.isActive ?? true,
+      description: insertTeam.description ?? null,
+      departmentId: insertTeam.departmentId ?? null,
       createdAt: new Date(),
     };
     this.teams.set(id, team);
@@ -677,7 +685,7 @@ export class MemStorage implements IStorage {
     }
 
     // Sort by creation date (newest first)
-    tickets.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+    tickets.sort((a, b) => (b.createdAt?.getTime() || 0) - (a.createdAt?.getTime() || 0));
 
     if (filters.offset) {
       tickets = tickets.slice(filters.offset);
@@ -699,6 +707,10 @@ export class MemStorage implements IStorage {
       ...insertTicket,
       id,
       code,
+      status: insertTicket.status ?? "NEW",
+      teamId: insertTicket.teamId ?? null,
+      assigneeId: insertTicket.assigneeId ?? null,
+      dueAt: insertTicket.dueAt ?? null,
       resolvedAt: null,
       closedAt: null,
       createdAt: new Date(),
@@ -759,7 +771,7 @@ export class MemStorage implements IStorage {
 
     const events = Array.from(this.ticketEvents.values())
       .filter(event => event.ticketId === ticketId)
-      .sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
+      .sort((a, b) => (a.createdAt?.getTime() || 0) - (b.createdAt?.getTime() || 0));
 
     await this.cacheSet(cacheKey, events, 300); // 5 minutes
     return events;
@@ -787,7 +799,7 @@ export class MemStorage implements IStorage {
 
     const comments = Array.from(this.ticketComments.values())
       .filter(comment => comment.ticketId === ticketId)
-      .sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
+      .sort((a, b) => (a.createdAt?.getTime() || 0) - (b.createdAt?.getTime() || 0));
 
     await this.cacheSet(cacheKey, comments, 300); // 5 minutes
     return comments;
@@ -798,6 +810,7 @@ export class MemStorage implements IStorage {
     const comment: TicketComment = {
       ...insertComment,
       id,
+      visibility: insertComment.visibility ?? "PUBLIC",
       createdAt: new Date(),
       updatedAt: new Date(),
     };
@@ -840,6 +853,12 @@ export class MemStorage implements IStorage {
     const item: ServiceCatalog = {
       ...insertItem,
       id,
+      isActive: insertItem.isActive ?? true,
+      description: insertItem.description ?? null,
+      subcategory: insertItem.subcategory ?? null,
+      defaultPriority: insertItem.defaultPriority ?? null,
+      requiresApproval: insertItem.requiresApproval ?? null,
+      formJson: insertItem.formJson ?? {},
       createdAt: new Date(),
       updatedAt: new Date(),
     };
@@ -874,7 +893,7 @@ export class MemStorage implements IStorage {
       articles = articles.filter(article => article.status === status);
     }
 
-    const sortedArticles = articles.sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime());
+    const sortedArticles = articles.sort((a, b) => (b.updatedAt?.getTime() || 0) - (a.updatedAt?.getTime() || 0));
     await this.cacheSet(cacheKey, sortedArticles, 300); // 5 minutes
     return sortedArticles;
   }
@@ -912,6 +931,10 @@ export class MemStorage implements IStorage {
     const article: KnowledgeArticle = {
       ...insertArticle,
       id,
+      status: insertArticle.status ?? "DRAFT",
+      version: insertArticle.version ?? 1,
+      updatedById: insertArticle.updatedById ?? null,
+      tags: insertArticle.tags ?? null,
       createdAt: new Date(),
       updatedAt: new Date(),
     };
@@ -968,6 +991,9 @@ export class MemStorage implements IStorage {
     const rule: AutomationRule = {
       ...insertRule,
       id,
+      isActive: insertRule.isActive ?? true,
+      description: insertRule.description ?? null,
+      conditionsJson: insertRule.conditionsJson ?? {},
       createdAt: new Date(),
       updatedAt: new Date(),
     };
@@ -1021,6 +1047,9 @@ export class MemStorage implements IStorage {
     const sla: SLA = {
       ...insertSLA,
       id,
+      isActive: insertSLA.isActive ?? true,
+      appliesToJson: insertSLA.appliesToJson ?? {},
+      calendarJson: insertSLA.calendarJson ?? {},
       createdAt: new Date(),
     };
     this.slas.set(id, sla);
@@ -1049,7 +1078,7 @@ export class MemStorage implements IStorage {
     const tickets = Array.from(this.tickets.values()).filter(ticket => ticket.orgId === orgId);
 
     const openTickets = tickets.filter(ticket =>
-      !['RESOLVED', 'CLOSED', 'CANCELED'].includes(ticket.status)
+      !['RESOLVED', 'CLOSED', 'CANCELED'].includes(ticket.status || '')
     ).length;
 
     const slaAtRisk = tickets.filter(ticket => {
@@ -1078,8 +1107,9 @@ export class MemStorage implements IStorage {
     const statusCounts = new Map<string, number>();
 
     tickets.forEach(ticket => {
-      const count = statusCounts.get(ticket.status) || 0;
-      statusCounts.set(ticket.status, count + 1);
+      const status = ticket.status || 'UNKNOWN';
+      const count = statusCounts.get(status) || 0;
+      statusCounts.set(status, count + 1);
     });
 
     return Array.from(statusCounts.entries()).map(([status, count]) => ({ status, count }));
@@ -1094,7 +1124,7 @@ export class MemStorage implements IStorage {
 
     const tickets = Array.from(this.tickets.values())
       .filter(ticket => ticket.orgId === orgId)
-      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
+      .sort((a, b) => (b.createdAt?.getTime() || 0) - (a.createdAt?.getTime() || 0))
       .slice(0, limit);
 
     await this.cacheSet(cacheKey, tickets, 300); // 5 minutes

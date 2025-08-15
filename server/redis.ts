@@ -48,7 +48,6 @@ let redisSubscriber: Redis | MockRedis;
 
 try {
   redis = new Redis(REDIS_URL, {
-    retryDelayOnFailover: 100,
     enableReadyCheck: false,
     maxRetriesPerRequest: 3,
     connectTimeout: 5000,
@@ -56,7 +55,6 @@ try {
   });
 
   redisSubscriber = new Redis(REDIS_URL, {
-    retryDelayOnFailover: 100,
     enableReadyCheck: false,
     maxRetriesPerRequest: 3,
     connectTimeout: 5000,
