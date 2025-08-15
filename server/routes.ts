@@ -27,10 +27,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Create initial admin user (for development)
   app.post("/api/seed-admin", async (req, res) => {
     try {
-      // Check if any admin already exists
-      const existingUsers = await storage.getUsersByOrg("*");
-      if (existingUsers.length > 0) {
-        return res.status(400).json({ message: "Admin already exists" });
+      // Check if admin email already exists
+      const existingAdmin = await storage.getUserByEmail("admin@servicedesk.com");
+      if (existingAdmin) {
+        return res.json({
+          message: "Admin already exists",
+          credentials: {
+            email: "admin@servicedesk.com",
+            password: "admin123"
+          }
+        });
       }
 
       const adminData = {
@@ -41,12 +47,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         orgDomain: "servicedesk.com"
       };
 
-      // Create organization
-      const org = await storage.createOrganization({
-        name: adminData.orgName,
-        domain: adminData.orgDomain,
-        isActive: true,
-      });
+      // Check if organization exists
+      let org = await storage.getOrganizationByDomain(adminData.orgDomain);
+      if (!org) {
+        // Create organization
+        org = await storage.createOrganization({
+          name: adminData.orgName,
+          domain: adminData.orgDomain,
+          isActive: true,
+        });
+      }
 
       // Create admin user
       const hashedPassword = await hashPassword(adminData.password);
@@ -61,14 +71,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
         isActive: true,
       });
 
-      // Create default team
-      const team = await storage.createTeam({
-        orgId: org.id,
-        departmentId: null,
-        name: "Suporte Geral",
-        description: "Equipe de suporte geral",
-        isActive: true,
-      });
+      // Check if team exists
+      const teams = await storage.getTeamsByOrg(org.id);
+      let team = teams.find(t => t.name === "Suporte Geral");
+      
+      if (!team) {
+        // Create default team
+        team = await storage.createTeam({
+          orgId: org.id,
+          departmentId: null,
+          name: "Suporte Geral",
+          description: "Equipe de suporte geral",
+          isActive: true,
+        });
+      }
 
       // Add user as admin
       await storage.createMembership({
@@ -87,7 +103,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     } catch (error) {
       console.error("Seed admin error:", error);
-      res.status(500).json({ message: "Internal server error" });
+      res.status(500).json({ 
+        message: "Internal server error", 
+        error: error.message 
+      });
     }
   });
 
@@ -202,6 +221,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Seed admin route (unprotected)
+  app.use("/api/seed-admin", (req, res, next) => next());
+  
   // Protected routes
   app.use("/api", authenticateToken);
 
