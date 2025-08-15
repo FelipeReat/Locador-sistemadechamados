@@ -354,3 +354,271 @@ export default function TicketDetail() {
     </div>
   );
 }
+import { useState } from "react";
+import { useRoute } from "wouter";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { 
+  ArrowLeft, 
+  Edit, 
+  MessageSquare, 
+  Clock, 
+  User,
+  Calendar,
+  Tag,
+  AlertCircle,
+  CheckCircle
+} from "lucide-react";
+import { useLocation } from "wouter";
+import { useAuthenticatedQuery } from "@/hooks/use-api";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
+
+const statusColors = {
+  'NEW': 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
+  'IN_PROGRESS': 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200',
+  'WAITING_APPROVAL': 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200',
+  'WAITING_CUSTOMER': 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200',
+  'RESOLVED': 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
+  'CLOSED': 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200',
+};
+
+const statusLabels = {
+  'NEW': 'Novo',
+  'IN_PROGRESS': 'Em Andamento',
+  'WAITING_APPROVAL': 'Aguardando Aprovação',
+  'WAITING_CUSTOMER': 'Aguardando Cliente',
+  'RESOLVED': 'Resolvido',
+  'CLOSED': 'Fechado',
+};
+
+const priorityColors = {
+  'P1': 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200',
+  'P2': 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200',
+  'P3': 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200',
+  'P4': 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
+  'P5': 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200',
+};
+
+export default function TicketDetail() {
+  const [match] = useRoute("/tickets/:id");
+  const [, setLocation] = useLocation();
+  const ticketId = match?.id;
+
+  const { data: ticket, isLoading } = useAuthenticatedQuery(
+    ['ticket', ticketId],
+    `/tickets/${ticketId}`,
+    { enabled: !!ticketId }
+  );
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-64">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
+  if (!ticket) {
+    return (
+      <div className="text-center py-8">
+        <AlertCircle className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+        <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+          Chamado não encontrado
+        </h2>
+        <p className="text-gray-600 dark:text-gray-400 mb-4">
+          O chamado solicitado não existe ou você não tem permissão para visualizá-lo.
+        </p>
+        <Button onClick={() => setLocation("/tickets")}>
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          Voltar aos Chamados
+        </Button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center space-x-4">
+          <Button 
+            variant="outline" 
+            onClick={() => setLocation("/tickets")}
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Voltar
+          </Button>
+          <div>
+            <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">
+              Chamado #{ticket.id.substring(0, 8)}
+            </h1>
+            <p className="text-gray-600 dark:text-gray-400">
+              {ticket.title}
+            </p>
+          </div>
+        </div>
+        <Button>
+          <Edit className="w-4 h-4 mr-2" />
+          Editar
+        </Button>
+      </div>
+
+      {/* Ticket Info */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2">
+          <Card>
+            <CardHeader>
+              <CardTitle>Detalhes do Chamado</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <h3 className="font-medium text-gray-900 dark:text-white mb-2">
+                  Descrição
+                </h3>
+                <p className="text-gray-600 dark:text-gray-400 whitespace-pre-wrap">
+                  {ticket.description}
+                </p>
+              </div>
+              
+              {ticket.formData && (
+                <div>
+                  <h3 className="font-medium text-gray-900 dark:text-white mb-2">
+                    Informações Adicionais
+                  </h3>
+                  <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
+                    <pre className="text-sm text-gray-600 dark:text-gray-400">
+                      {JSON.stringify(ticket.formData, null, 2)}
+                    </pre>
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+        <div className="space-y-6">
+          {/* Status Card */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-sm">Status</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-600 dark:text-gray-400">Status atual</span>
+                <Badge className={statusColors[ticket.status as keyof typeof statusColors]}>
+                  {statusLabels[ticket.status as keyof typeof statusLabels]}
+                </Badge>
+              </div>
+              
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-600 dark:text-gray-400">Prioridade</span>
+                <Badge className={priorityColors[ticket.priority as keyof typeof priorityColors]}>
+                  {ticket.priority}
+                </Badge>
+              </div>
+              
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-600 dark:text-gray-400">Categoria</span>
+                <span className="text-sm font-medium">{ticket.category}</span>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* People Card */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-sm">Pessoas</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-600 dark:text-gray-400">Solicitante</span>
+                <div className="flex items-center space-x-2">
+                  <User className="w-4 h-4 text-gray-400" />
+                  <span className="text-sm font-medium">{ticket.requester?.name || 'N/A'}</span>
+                </div>
+              </div>
+              
+              {ticket.assignee && (
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-gray-600 dark:text-gray-400">Responsável</span>
+                  <div className="flex items-center space-x-2">
+                    <User className="w-4 h-4 text-gray-400" />
+                    <span className="text-sm font-medium">{ticket.assignee.name}</span>
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Timeline Card */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-sm">Datas</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-600 dark:text-gray-400">Criado em</span>
+                <div className="flex items-center space-x-2">
+                  <Calendar className="w-4 h-4 text-gray-400" />
+                  <span className="text-sm">
+                    {format(new Date(ticket.createdAt), 'dd/MM/yyyy HH:mm', { locale: ptBR })}
+                  </span>
+                </div>
+              </div>
+              
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-600 dark:text-gray-400">Atualizado em</span>
+                <div className="flex items-center space-x-2">
+                  <Clock className="w-4 h-4 text-gray-400" />
+                  <span className="text-sm">
+                    {format(new Date(ticket.updatedAt), 'dd/MM/yyyy HH:mm', { locale: ptBR })}
+                  </span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+
+      {/* Tabs */}
+      <Tabs defaultValue="comments" className="w-full">
+        <TabsList>
+          <TabsTrigger value="comments">
+            <MessageSquare className="w-4 h-4 mr-2" />
+            Comentários
+          </TabsTrigger>
+          <TabsTrigger value="history">
+            <Clock className="w-4 h-4 mr-2" />
+            Histórico
+          </TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="comments">
+          <Card>
+            <CardContent className="p-6">
+              <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                <MessageSquare className="w-16 h-16 mx-auto mb-4 opacity-50" />
+                <p>Nenhum comentário ainda</p>
+                <p className="text-sm">Seja o primeiro a comentar neste chamado</p>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+        
+        <TabsContent value="history">
+          <Card>
+            <CardContent className="p-6">
+              <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                <Clock className="w-16 h-16 mx-auto mb-4 opacity-50" />
+                <p>Nenhum histórico disponível</p>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
+    </div>
+  );
+}

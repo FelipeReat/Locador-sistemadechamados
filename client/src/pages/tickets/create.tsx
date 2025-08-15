@@ -302,3 +302,202 @@ export default function CreateTicket() {
     </div>
   );
 }
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { ArrowLeft, Save } from "lucide-react";
+import { useLocation } from "wouter";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+
+const createTicketSchema = z.object({
+  title: z.string().min(5, "Título deve ter pelo menos 5 caracteres"),
+  description: z.string().min(10, "Descrição deve ter pelo menos 10 caracteres"),
+  category: z.string().min(1, "Selecione uma categoria"),
+  priority: z.string().min(1, "Selecione uma prioridade"),
+});
+
+type CreateTicketForm = z.infer<typeof createTicketSchema>;
+
+export default function CreateTicket() {
+  const [, setLocation] = useLocation();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const form = useForm<CreateTicketForm>({
+    resolver: zodResolver(createTicketSchema),
+    defaultValues: {
+      title: "",
+      description: "",
+      category: "",
+      priority: "",
+    },
+  });
+
+  const onSubmit = async (data: CreateTicketForm) => {
+    setIsSubmitting(true);
+    try {
+      const response = await fetch('/api/tickets', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
+        },
+        body: JSON.stringify(data),
+      });
+
+      if (response.ok) {
+        const ticket = await response.json();
+        setLocation(`/tickets/${ticket.id}`);
+      } else {
+        console.error('Erro ao criar ticket');
+      }
+    } catch (error) {
+      console.error('Erro:', error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center space-x-4">
+        <Button 
+          variant="outline" 
+          onClick={() => setLocation("/tickets")}
+        >
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          Voltar
+        </Button>
+        <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">
+          Novo Chamado
+        </h1>
+      </div>
+
+      {/* Form */}
+      <div className="max-w-2xl">
+        <Card>
+          <CardHeader>
+            <CardTitle>Informações do Chamado</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                <FormField
+                  control={form.control}
+                  name="title"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Título *</FormLabel>
+                      <FormControl>
+                        <Input 
+                          placeholder="Descreva brevemente o problema ou solicitação" 
+                          {...field} 
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="description"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Descrição *</FormLabel>
+                      <FormControl>
+                        <Textarea 
+                          placeholder="Descreva detalhadamente o problema, incluindo passos para reproduzir, impacto no negócio, etc."
+                          className="min-h-32"
+                          {...field} 
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="category"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Categoria *</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecione a categoria" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="hardware">Hardware</SelectItem>
+                            <SelectItem value="software">Software</SelectItem>
+                            <SelectItem value="network">Rede</SelectItem>
+                            <SelectItem value="access">Acesso</SelectItem>
+                            <SelectItem value="other">Outros</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="priority"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Prioridade *</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecione a prioridade" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="P1">P1 - Crítica</SelectItem>
+                            <SelectItem value="P2">P2 - Alta</SelectItem>
+                            <SelectItem value="P3">P3 - Média</SelectItem>
+                            <SelectItem value="P4">P4 - Baixa</SelectItem>
+                            <SelectItem value="P5">P5 - Muito Baixa</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                <div className="flex gap-4 pt-4">
+                  <Button 
+                    type="submit" 
+                    disabled={isSubmitting}
+                    className="flex-1"
+                  >
+                    <Save className="w-4 h-4 mr-2" />
+                    {isSubmitting ? "Criando..." : "Criar Chamado"}
+                  </Button>
+                  <Button 
+                    type="button" 
+                    variant="outline"
+                    onClick={() => setLocation("/tickets")}
+                  >
+                    Cancelar
+                  </Button>
+                </div>
+              </form>
+            </Form>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+}

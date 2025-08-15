@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { authService } from "../lib/auth";
 
@@ -12,7 +11,7 @@ export const useAuthenticatedFetch = () => {
     options: RequestInit = {}
   ): Promise<Response> => {
     const token = authService.getToken();
-    
+
     const headers = {
       'Content-Type': 'application/json',
       ...options.headers,
@@ -41,25 +40,39 @@ export const useAuthenticatedFetch = () => {
   return authenticatedFetch;
 };
 
-export const useAuthenticatedQuery = <T>(
-  key: string | string[],
-  endpoint: string,
-  options?: any
-) => {
-  const fetch = useAuthenticatedFetch();
-  
+export function useAuthenticatedQuery<T>(
+  key: any[],
+  url: string,
+  options?: Omit<UseQueryOptions<T>, 'queryKey' | 'queryFn'>
+) {
   return useQuery<T>({
-    queryKey: Array.isArray(key) ? key : [key],
+    queryKey: key,
     queryFn: async () => {
-      const response = await fetch(endpoint);
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      const token = authService.getToken();
+      if (!token) {
+        throw new Error('No authentication token available');
       }
+
+      const response = await fetch(`/api${url}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          authService.logout();
+          window.location.href = '/login';
+        }
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
       return response.json();
     },
     ...options,
   });
-};
+}
 
 export const useAuthenticatedMutation = <T, V = unknown>(
   endpoint: string,
@@ -75,12 +88,12 @@ export const useAuthenticatedMutation = <T, V = unknown>(
         method,
         body: data ? JSON.stringify(data) : undefined,
       });
-      
+
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         throw new Error(errorData.message || `HTTP ${response.status}: ${response.statusText}`);
       }
-      
+
       return response.json();
     },
     onSuccess: () => {

@@ -212,3 +212,134 @@ export default function KnowledgeBase() {
     );
   }
 }
+import { useState } from "react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Search, BookOpen, Eye, Calendar, User } from "lucide-react";
+import { useAuthenticatedQuery } from "@/hooks/use-api";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
+
+export default function KnowledgeBase() {
+  const [searchTerm, setSearchTerm] = useState("");
+
+  const { data: articles = [], isLoading } = useAuthenticatedQuery(
+    ['kb'],
+    '/kb'
+  );
+
+  const filteredArticles = articles.filter((article: any) =>
+    article.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    article.content.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div>
+        <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">
+          Base de Conhecimento
+        </h1>
+        <p className="text-gray-600 dark:text-gray-400 mt-2">
+          Encontre respostas e soluções para problemas comuns
+        </p>
+      </div>
+
+      {/* Search */}
+      <Card>
+        <CardContent className="pt-6">
+          <div className="relative max-w-md">
+            <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+            <Input
+              placeholder="Buscar artigos..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Articles */}
+      <div className="space-y-4">
+        {isLoading ? (
+          Array.from({ length: 5 }).map((_, i) => (
+            <Card key={i} className="animate-pulse">
+              <CardHeader>
+                <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div>
+                <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                  <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-5/6"></div>
+                </div>
+              </CardContent>
+            </Card>
+          ))
+        ) : filteredArticles.length === 0 ? (
+          <Card>
+            <CardContent className="p-12 text-center">
+              <div className="text-gray-500 dark:text-gray-400">
+                <BookOpen className="w-16 h-16 mx-auto mb-4 opacity-50" />
+                <p className="text-lg font-medium mb-2">Nenhum artigo encontrado</p>
+                <p>Tente ajustar sua busca ou entre em contato com o administrador.</p>
+              </div>
+            </CardContent>
+          </Card>
+        ) : (
+          filteredArticles.map((article: any) => (
+            <Card key={article.id} className="hover:shadow-md transition-shadow">
+              <CardHeader>
+                <CardTitle className="flex items-center justify-between">
+                  <span>{article.title}</span>
+                  <div className="flex space-x-2">
+                    <Badge variant="outline">
+                      {article.category}
+                    </Badge>
+                    {article.status === 'PUBLISHED' && (
+                      <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                        Publicado
+                      </Badge>
+                    )}
+                  </div>
+                </CardTitle>
+                <CardDescription>
+                  {article.excerpt || article.content.substring(0, 150) + '...'}
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-4 text-sm text-gray-500 dark:text-gray-400">
+                    <div className="flex items-center space-x-1">
+                      <User className="w-4 h-4" />
+                      <span>{article.author?.name || 'Autor não informado'}</span>
+                    </div>
+                    <div className="flex items-center space-x-1">
+                      <Calendar className="w-4 h-4" />
+                      <span>
+                        {format(new Date(article.createdAt), 'dd/MM/yyyy', { locale: ptBR })}
+                      </span>
+                    </div>
+                    {article.views && (
+                      <div className="flex items-center space-x-1">
+                        <Eye className="w-4 h-4" />
+                        <span>{article.views} visualizações</span>
+                      </div>
+                    )}
+                  </div>
+                  <Button variant="outline" size="sm">
+                    <Eye className="w-4 h-4 mr-2" />
+                    Ler Artigo
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          ))
+        )}
+      </div>
+    </div>
+  );
+}

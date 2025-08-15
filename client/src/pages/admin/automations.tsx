@@ -217,3 +217,163 @@ export default function AdminAutomations() {
     </div>
   );
 }
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { 
+  Plus, 
+  Settings,
+  Play,
+  Pause,
+  Edit,
+  Trash2,
+  Zap
+} from "lucide-react";
+import { useAuthenticatedQuery } from "@/hooks/use-api";
+
+export default function AdminAutomations() {
+  const { data: automations = [], isLoading } = useAuthenticatedQuery(
+    ['automations'],
+    '/automations'
+  );
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-semibold text-gray-900 dark:text-white flex items-center space-x-3">
+          <Settings className="w-8 h-8" />
+          <span>Automações</span>
+        </h1>
+        <Button>
+          <Plus className="w-4 h-4 mr-2" />
+          Nova Automação
+        </Button>
+      </div>
+
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total de Automações</CardTitle>
+            <Zap className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{automations.length}</div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Ativas</CardTitle>
+            <Play className="h-4 w-4 text-green-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-green-600">
+              {automations.filter((a: any) => a.isActive).length}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Inativas</CardTitle>
+            <Pause className="h-4 w-4 text-gray-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-gray-600">
+              {automations.filter((a: any) => !a.isActive).length}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Automations Table */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Regras de Automação</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {isLoading ? (
+            <div className="text-center py-8">
+              Carregando automações...
+            </div>
+          ) : automations.length === 0 ? (
+            <div className="text-center py-8 text-gray-500">
+              <Zap className="w-16 h-16 mx-auto mb-4 opacity-50" />
+              <p className="text-lg font-medium mb-2">Nenhuma automação configurada</p>
+              <p>Crie sua primeira regra de automação para otimizar o atendimento.</p>
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Nome</TableHead>
+                  <TableHead>Trigger</TableHead>
+                  <TableHead>Ações</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Execuções</TableHead>
+                  <TableHead>Ações</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {automations.map((automation: any) => (
+                  <TableRow key={automation.id}>
+                    <TableCell>
+                      <div>
+                        <div className="font-medium">{automation.name}</div>
+                        <div className="text-sm text-gray-500 dark:text-gray-400">
+                          {automation.description}
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="outline">
+                        {automation.trigger}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <div className="text-sm">
+                        {automation.actions?.length || 0} ação(ões)
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      {automation.isActive ? (
+                        <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                          <Play className="w-3 h-3 mr-1" />
+                          Ativa
+                        </Badge>
+                      ) : (
+                        <Badge variant="secondary">
+                          <Pause className="w-3 h-3 mr-1" />
+                          Inativa
+                        </Badge>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {automation.executionCount || 0}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex space-x-2">
+                        <Button variant="outline" size="sm">
+                          <Edit className="w-4 h-4 mr-2" />
+                          Editar
+                        </Button>
+                        <Button variant="outline" size="sm">
+                          <Trash2 className="w-4 h-4 mr-2" />
+                          Excluir
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
