@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient, UseQueryOptions } from "@tanstack/react-query";
 import { authService } from "../lib/auth";
 
 const API_BASE = "/api";
@@ -12,7 +12,7 @@ export const useAuthenticatedFetch = () => {
   ): Promise<Response> => {
     const token = authService.getToken();
 
-    const headers = {
+    const headers: Record<string, string> = {
       'Content-Type': 'application/json',
       ...options.headers,
     };

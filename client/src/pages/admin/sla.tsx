@@ -1,22 +1,23 @@
-import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { PlusIcon, SearchIcon, SettingsIcon, ClockIcon, CalendarIcon, CheckCircleIcon, XCircleIcon } from "lucide-react";
-import { formatDateTime } from "@/lib/constants";
+import { Plus, Search, Clock, Target, AlertTriangle } from "lucide-react";
+import { useAuthenticatedQuery } from "@/hooks/use-api";
 
 export default function AdminSLA() {
   const [search, setSearch] = useState("");
 
-  const { data: slas = [], isLoading } = useQuery({
-    queryKey: ["/api/sla"],
-  });
+  const { data: slaRules = [], isLoading } = useAuthenticatedQuery(
+    ['sla'],
+    '/sla'
+  );
 
-  const filteredSlas = slas.filter((sla: any) =>
-    sla.name.toLowerCase().includes(search.toLowerCase())
+  const filteredRules = slaRules.filter((rule: any) =>
+    rule.name?.toLowerCase().includes(search.toLowerCase()) ||
+    rule.description?.toLowerCase().includes(search.toLowerCase())
   );
 
   if (isLoading) {
@@ -33,68 +34,46 @@ export default function AdminSLA() {
   const formatTime = (minutes: number) => {
     if (minutes < 60) return `${minutes}min`;
     const hours = Math.floor(minutes / 60);
-    const mins = minutes % 60;
-    return mins > 0 ? `${hours}h ${mins}min` : `${hours}h`;
+    const remainingMinutes = minutes % 60;
+    return remainingMinutes > 0 ? `${hours}h ${remainingMinutes}min` : `${hours}h`;
+  };
+
+  const getPriorityColor = (priority: string) => {
+    switch (priority) {
+      case 'P1': return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200';
+      case 'P2': return 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200';
+      case 'P3': return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200';
+      case 'P4': return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200';
+      case 'P5': return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200';
+      default: return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200';
+    }
   };
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold text-gray-900 dark:text-white flex items-center space-x-3">
-          <ClockIcon className="w-8 h-8" />
-          <span>Gerenciamento de SLA</span>
-        </h1>
+        <div>
+          <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">
+            Configuração de SLA
+          </h1>
+          <p className="text-gray-600 dark:text-gray-400 mt-2">
+            Defina tempos de resposta e resolução para diferentes tipos de chamados
+          </p>
+        </div>
         <Button>
-          <PlusIcon className="w-4 h-4 mr-2" />
-          Novo SLA
+          <Plus className="w-4 h-4 mr-2" />
+          Nova Regra SLA
         </Button>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total de SLAs</CardTitle>
-            <ClockIcon className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{slas.length}</div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">SLAs Ativos</CardTitle>
-            <CheckCircleIcon className="h-4 w-4 text-green-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-600">
-              {slas.filter((s: any) => s.isActive).length}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">SLAs Inativos</CardTitle>
-            <XCircleIcon className="h-4 w-4 text-red-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-red-600">
-              {slas.filter((s: any) => !s.isActive).length}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Search and Filters */}
+      {/* Search */}
       <Card>
         <CardContent className="pt-6">
-          <div className="relative">
-            <SearchIcon className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+          <div className="relative max-w-md">
+            <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
             <Input
-              placeholder="Buscar SLAs..."
+              placeholder="Buscar regras de SLA..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="pl-10"
@@ -103,250 +82,99 @@ export default function AdminSLA() {
         </CardContent>
       </Card>
 
-      {/* SLA Table */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Acordos de Nível de Serviço</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Nome</TableHead>
-                <TableHead>Primeira Resposta</TableHead>
-                <TableHead>Resolução</TableHead>
-                <TableHead>Aplica-se a</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Criado em</TableHead>
-                <TableHead>Ações</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredSlas.map((sla: any) => (
-                <TableRow key={sla.id}>
-                  <TableCell>
-                    <div>
-                      <div className="font-medium">{sla.name}</div>
-                      <div className="text-sm text-gray-500 dark:text-gray-400">
-                        ID: {sla.id.substring(0, 8)}
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant="outline" className="text-xs">
-                      {formatTime(sla.firstResponseMins)}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant="outline" className="text-xs">
-                      {formatTime(sla.resolutionMins)}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <div className="text-sm">
-                      {sla.appliesToJson?.priority?.length > 0 
-                        ? `Prioridades: ${sla.appliesToJson.priority.join(', ')}`
-                        : "Todos os chamados"
-                      }
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    {sla.isActive ? (
-                      <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
-                        Ativo
-                      </Badge>
-                    ) : (
-                      <Badge variant="destructive">Inativo</Badge>
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center space-x-2">
-                      <CalendarIcon className="h-4 w-4 text-gray-400" />
-                      <span className="text-sm">
-                        {formatDateTime(new Date(sla.createdAt))}
-                      </span>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center space-x-2">
-                      <Button variant="outline" size="sm">
-                        <SettingsIcon className="h-4 w-4 mr-2" />
-                        Editar
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-
-          {filteredSlas.length === 0 && (
-            <div className="text-center py-12">
-              <ClockIcon className="w-12 h-12 mx-auto text-gray-400 mb-4" />
-              <p className="text-gray-500 dark:text-gray-400">Nenhum SLA encontrado</p>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-    </div>
-  );
-}
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { 
-  Plus, 
-  Clock,
-  Target,
-  AlertTriangle,
-  CheckCircle,
-  Edit
-} from "lucide-react";
-import { useAuthenticatedQuery } from "@/hooks/use-api";
-
-export default function AdminSLA() {
-  const { data: slaRules = [], isLoading } = useAuthenticatedQuery(
-    ['sla'],
-    '/sla'
-  );
-
-  return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold text-gray-900 dark:text-white flex items-center space-x-3">
-          <Target className="w-8 h-8" />
-          <span>Configuração de SLA</span>
-        </h1>
-        <Button>
-          <Plus className="w-4 h-4 mr-2" />
-          Nova Regra SLA
-        </Button>
-      </div>
-
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total de Regras</CardTitle>
-            <Target className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{slaRules.length}</div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Cumprimento Médio</CardTitle>
-            <CheckCircle className="h-4 w-4 text-green-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-600">85%</div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Em Risco</CardTitle>
-            <AlertTriangle className="h-4 w-4 text-yellow-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-yellow-600">12</div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Violações</CardTitle>
-            <AlertTriangle className="h-4 w-4 text-red-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-red-600">3</div>
-          </CardContent>
-        </Card>
-      </div>
-
       {/* SLA Rules Table */}
       <Card>
         <CardHeader>
-          <CardTitle>Regras de SLA</CardTitle>
+          <CardTitle className="flex items-center">
+            <Target className="w-5 h-5 mr-2" />
+            Regras de SLA Configuradas
+          </CardTitle>
         </CardHeader>
         <CardContent>
-          {isLoading ? (
+          {filteredRules.length === 0 ? (
             <div className="text-center py-8">
-              Carregando regras de SLA...
-            </div>
-          ) : slaRules.length === 0 ? (
-            <div className="text-center py-8 text-gray-500">
-              <Target className="w-16 h-16 mx-auto mb-4 opacity-50" />
-              <p className="text-lg font-medium mb-2">Nenhuma regra de SLA configurada</p>
-              <p>Configure metas de tempo para diferentes tipos de chamados.</p>
+              <Target className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+              <p className="text-gray-500 dark:text-gray-400">
+                {search ? 'Nenhuma regra encontrada' : 'Nenhuma regra de SLA configurada'}
+              </p>
+              <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">
+                {search ? 'Tente ajustar sua busca' : 'Configure regras de SLA para garantir o cumprimento dos prazos'}
+              </p>
             </div>
           ) : (
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Nome</TableHead>
-                  <TableHead>Categoria</TableHead>
+                  <TableHead>Nome da Regra</TableHead>
                   <TableHead>Prioridade</TableHead>
-                  <TableHead>Tempo de Resposta</TableHead>
-                  <TableHead>Tempo de Resolução</TableHead>
+                  <TableHead>Primeira Resposta</TableHead>
+                  <TableHead>Resolução</TableHead>
+                  <TableHead>Condições</TableHead>
                   <TableHead>Status</TableHead>
-                  <TableHead>Ações</TableHead>
+                  <TableHead className="text-right">Opções</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {slaRules.map((rule: any) => (
+                {filteredRules.map((rule: any) => (
                   <TableRow key={rule.id}>
                     <TableCell>
                       <div>
                         <div className="font-medium">{rule.name}</div>
-                        <div className="text-sm text-gray-500 dark:text-gray-400">
-                          {rule.description}
-                        </div>
+                        {rule.description && (
+                          <div className="text-sm text-gray-500 dark:text-gray-400">
+                            {rule.description}
+                          </div>
+                        )}
                       </div>
                     </TableCell>
                     <TableCell>
-                      <Badge variant="outline">
-                        {rule.category || 'Todas'}
+                      <Badge className={getPriorityColor(rule.priority)}>
+                        {rule.priority}
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      <Badge variant="outline">
-                        {rule.priority || 'Todas'}
+                      <div className="flex items-center text-sm">
+                        <Clock className="w-3 h-3 mr-1" />
+                        {formatTime(rule.firstResponseTime || 0)}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center text-sm">
+                        <Target className="w-3 h-3 mr-1" />
+                        {formatTime(rule.resolutionTime || 0)}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="text-sm">
+                        {rule.conditions ? 
+                          `${Object.keys(rule.conditions).length} condição(ões)` : 
+                          'Todas'
+                        }
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant={rule.isActive ? "default" : "secondary"}>
+                        {rule.isActive ? 'Ativa' : 'Inativa'}
                       </Badge>
                     </TableCell>
-                    <TableCell>
-                      <div className="flex items-center space-x-1">
-                        <Clock className="w-4 h-4 text-gray-400" />
-                        <span>{rule.responseTime}h</span>
+                    <TableCell className="text-right">
+                      <div className="flex items-center justify-end space-x-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          disabled
+                        >
+                          Editar
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          disabled
+                        >
+                          <AlertTriangle className="w-3 h-3 mr-1" />
+                          Relatório
+                        </Button>
                       </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center space-x-1">
-                        <Clock className="w-4 h-4 text-gray-400" />
-                        <span>{rule.resolutionTime}h</span>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      {rule.isActive ? (
-                        <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
-                          Ativa
-                        </Badge>
-                      ) : (
-                        <Badge variant="secondary">
-                          Inativa
-                        </Badge>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      <Button variant="outline" size="sm">
-                        <Edit className="w-4 h-4 mr-2" />
-                        Editar
-                      </Button>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -355,6 +183,54 @@ export default function AdminSLA() {
           )}
         </CardContent>
       </Card>
+
+      {/* SLA Summary Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">
+              Cumprimento Geral
+            </CardTitle>
+            <Target className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">85%</div>
+            <p className="text-xs text-muted-foreground">
+              +2% em relação ao mês anterior
+            </p>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">
+              Primeira Resposta
+            </CardTitle>
+            <Clock className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">92%</div>
+            <p className="text-xs text-muted-foreground">
+              Dentro do prazo estabelecido
+            </p>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">
+              Violações Críticas
+            </CardTitle>
+            <AlertTriangle className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">3</div>
+            <p className="text-xs text-muted-foreground">
+              Nos últimos 7 dias
+            </p>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }

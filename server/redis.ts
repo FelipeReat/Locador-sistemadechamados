@@ -66,13 +66,14 @@ try {
   redis.on('error', (error) => {
     console.warn('Redis not available, using mock Redis for development');
     redis = new MockRedis();
+    redisSubscriber = new MockRedis();
   });
 
   redis.on('connect', () => {
     console.log('Connected to Redis');
   });
 
-  // Test connection
+  // Test connection gracefully
   redis.ping().catch(() => {
     console.warn('Redis not available, using mock Redis for development');
     redis = new MockRedis();

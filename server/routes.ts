@@ -3,7 +3,7 @@ import { createServer, type Server } from "http";
 import { z } from "zod";
 import { storage } from "./storage";
 import { authenticateToken, requireRole, hashPassword, comparePassword, generateToken, type AuthenticatedRequest } from "./auth";
-import { jobQueue, scheduleSLAChecks } from "./jobs";
+import { notificationQueue, slaQueue, automationQueue } from "./jobs";
 import { sendEmail, emailTemplates } from "./email";
 import {
   loginSchema,
@@ -762,8 +762,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Initialize periodic jobs
-  setTimeout(() => {
-    scheduleSLAChecks();
+  setTimeout(async () => {
+    try {
+      const { scheduleSLAChecks } = await import('./jobs');
+      scheduleSLAChecks();
+    } catch (error) {
+      console.error('Failed to schedule SLA checks:', error);
+    }
   }, 5000); // Start after 5 seconds
 
   const httpServer = createServer(app);
