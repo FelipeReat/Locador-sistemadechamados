@@ -1,7 +1,14 @@
 import { Link, useLocation } from "wouter";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { authService } from "@/lib/auth";
+// Mock user for development
+const mockUser = {
+  id: "1",
+  username: "admin", 
+  name: "Administrador",
+  email: "admin@sistema.com",
+  teams: [{ id: "1", name: "Administradores", roles: ["ADMIN"] }]
+};
 import {
   Headset,
   LayoutDashboard,
@@ -84,8 +91,8 @@ const adminNavigation = [
 
 export default function Sidebar() {
   const [location] = useLocation();
-  const user = authService.getUser();
-  const isAdmin = authService.isAdmin();
+  const user = mockUser;
+  const isAdmin = true; // Always admin for development
 
   const isActive = (href: string) => {
     if (href === "/dashboard" && (location === "/" || location === "/dashboard")) {
@@ -95,8 +102,7 @@ export default function Sidebar() {
   };
 
   const canAccess = (requiredRoles?: string[]) => {
-    if (!requiredRoles) return true;
-    return authService.hasAnyRole(requiredRoles);
+    return true; // All access for development
   };
 
   return (

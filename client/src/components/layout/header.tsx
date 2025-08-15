@@ -3,16 +3,22 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { BellIcon, ChevronDownIcon, LogOutIcon, SettingsIcon, UserIcon } from "lucide-react";
-import { authService } from "@/lib/auth";
+// Mock user for development
+const mockUser = {
+  id: "1",
+  username: "admin",
+  name: "Administrador",
+  email: "admin@sistema.com",
+  teams: [{ id: "1", name: "Administradores", roles: ["ADMIN"] }]
+};
 import { useLocation } from "wouter";
 
 export default function Header() {
   const [, setLocation] = useLocation();
-  const user = authService.getUser();
+  const user = mockUser;
 
   const handleLogout = () => {
-    authService.logout();
-    setLocation("/login");
+    window.location.reload();
   };
 
   const getInitials = (name: string) => {
