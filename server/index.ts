@@ -57,13 +57,14 @@ app.use((req, res, next) => {
   }
 
   // Import and seed admin user on startup
-  try {
-    const { seedAdmin } = await import('./seed-admin');
-    await seedAdmin();
-    log(`Admin credentials: username=admin, password=admin123`);
-  } catch (error) {
-    log("Failed to seed admin user:", error);
-  }
+  import('./seed-admin')
+    .then(({ seedAdmin }) => seedAdmin())
+    .then(() => {
+      log(`Admin credentials: username=admin, password=admin123`);
+    })
+    .catch((error) => {
+      log("Failed to seed admin user:", error);
+    });
 
   // ALWAYS serve the app on the port specified in the environment variable PORT
   // Other ports are firewalled. Default to 5000 if not specified.

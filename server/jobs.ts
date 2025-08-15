@@ -1,6 +1,6 @@
 
 import { Queue, Worker, Job } from 'bullmq';
-import { redis } from './redis';
+import { redis, isRedisAvailable } from './redis';
 import { storage } from './storage';
 import { sendEmail } from './email';
 
@@ -23,12 +23,12 @@ class MockQueue {
 
 // Create queues with fallback to mock when Redis is unavailable
 function createQueue(name: string, options: any) {
-  try {
-    if (redis && typeof redis.ping === 'function') {
+  if (isRedisAvailable) {
+    try {
       return new Queue(name, { connection: redis, ...options });
+    } catch (error) {
+      console.warn(`Failed to create ${name} queue, using mock queue`);
     }
-  } catch (error) {
-    console.warn(`Failed to create ${name} queue, using mock queue`);
   }
   return new MockQueue(name, options);
 }
@@ -83,8 +83,8 @@ let notificationWorker: Worker | null = null;
 let slaWorker: Worker | null = null;
 let automationWorker: Worker | null = null;
 
-try {
-  if (redis && typeof redis.ping === 'function') {
+if (isRedisAvailable) {
+  try {
     notificationWorker = new Worker('notifications', async (job: Job<NotificationJobData>) => {
   const { type, ticketId, userIds, message, templateKey } = job.data;
   
@@ -226,9 +226,11 @@ try {
     throw error;
   }
 }, { connection: redis });
+  } catch (error) {
+    console.warn('Failed to create workers:', error);
   }
-} catch (error) {
-  console.warn('Redis not available, workers will not be started');
+} else {
+  console.log('Redis not available, workers will not be started');
 }
 
 // Helper functions

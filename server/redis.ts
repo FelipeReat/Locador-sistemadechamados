@@ -18,7 +18,6 @@ class MockRedis {
   
   async setex(key: string, seconds: number, value: string): Promise<string> {
     this.data.set(key, value);
-    // In a real implementation, you'd set a timeout to delete the key
     return 'OK';
   }
   
@@ -33,56 +32,96 @@ class MockRedis {
   async keys(pattern: string): Promise<string[]> {
     const allKeys = Array.from(this.data.keys());
     if (pattern === '*') return allKeys;
-    // Simple pattern matching for cache keys
     return allKeys.filter(key => key.includes(pattern.replace('*', '')));
   }
   
+  async ping(): Promise<string> {
+    return 'PONG';
+  }
+  
   on(event: string, callback: Function) {
-    // Mock event listener
     return this;
   }
 }
 
 let redis: Redis | MockRedis;
 let redisSubscriber: Redis | MockRedis;
+let isRedisAvailable = false;
 
-try {
-  redis = new Redis(REDIS_URL, {
-    enableReadyCheck: false,
-    maxRetriesPerRequest: null, // Required for BullMQ
-    connectTimeout: 5000,
-    lazyConnect: true,
-  });
+// Test if Redis is available without spamming connections
+async function testRedisConnection(): Promise<boolean> {
+  try {
+    const testClient = new Redis(REDIS_URL, {
+      enableReadyCheck: false,
+      maxRetriesPerRequest: null,
+      connectTimeout: 2000,
+      lazyConnect: true,
+      retryDelayOnFailover: 1000,
+      maxRetriesPerRequest: 1,
+    });
 
-  redisSubscriber = new Redis(REDIS_URL, {
-    enableReadyCheck: false,
-    maxRetriesPerRequest: null, // Required for BullMQ
-    connectTimeout: 5000,
-    lazyConnect: true,
-  });
-
-  redis.on('error', (error) => {
-    console.warn('Redis not available, using mock Redis for development');
-    redis = new MockRedis();
-    redisSubscriber = new MockRedis();
-  });
-
-  redis.on('connect', () => {
-    console.log('Connected to Redis');
-  });
-
-  // Test connection gracefully
-  redis.ping().catch(() => {
-    console.warn('Redis not available, using mock Redis for development');
-    redis = new MockRedis();
-    redisSubscriber = new MockRedis();
-  });
-
-} catch (error) {
-  console.warn('Redis not available, using mock Redis for development');
-  redis = new MockRedis();
-  redisSubscriber = new MockRedis();
+    await testClient.ping();
+    await testClient.disconnect();
+    return true;
+  } catch (error) {
+    return false;
+  }
 }
 
-export { redis, redisSubscriber };
+// Initialize Redis with better error handling
+async function initializeRedis() {
+  isRedisAvailable = await testRedisConnection();
+  
+  if (isRedisAvailable) {
+    try {
+      redis = new Redis(REDIS_URL, {
+        enableReadyCheck: false,
+        maxRetriesPerRequest: null,
+        connectTimeout: 5000,
+        lazyConnect: true,
+        retryDelayOnFailover: 1000,
+        maxRetriesPerRequest: 1,
+      });
+
+      redisSubscriber = new Redis(REDIS_URL, {
+        enableReadyCheck: false,
+        maxRetriesPerRequest: null,
+        connectTimeout: 5000,
+        lazyConnect: true,
+        retryDelayOnFailover: 1000,
+        maxRetriesPerRequest: 1,
+      });
+
+      redis.on('error', (error) => {
+        console.warn('Redis connection lost, falling back to mock Redis');
+        isRedisAvailable = false;
+      });
+
+      redis.on('connect', () => {
+        console.log('Connected to Redis');
+        isRedisAvailable = true;
+      });
+
+      console.log('Redis clients initialized');
+    } catch (error) {
+      console.warn('Failed to initialize Redis, using mock Redis');
+      isRedisAvailable = false;
+    }
+  }
+  
+  if (!isRedisAvailable) {
+    console.log('Using mock Redis for development');
+    redis = new MockRedis();
+    redisSubscriber = new MockRedis();
+  }
+}
+
+// Initialize on import
+initializeRedis().catch(() => {
+  console.log('Redis initialization failed, using mock Redis');
+  redis = new MockRedis();
+  redisSubscriber = new MockRedis();
+});
+
+export { redis, redisSubscriber, isRedisAvailable };
 export default redis;
