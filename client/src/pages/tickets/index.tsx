@@ -86,7 +86,6 @@ export default function TicketsIndexPage() {
         search: searchTerm,
         status: statusFilter,
         priority: priorityFilter,
-        sort: sortBy,
       },
     };
 
@@ -102,8 +101,9 @@ export default function TicketsIndexPage() {
   };
 
   const filteredTickets = tickets.filter((ticket: any) => {
-    const matchesSearch = ticket.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         ticket.description?.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = ticket.subject?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         ticket.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         ticket.code?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === "all" || ticket.status === statusFilter;
     const matchesPriority = priorityFilter === "all" || ticket.priority === priorityFilter;
 
@@ -133,47 +133,61 @@ export default function TicketsIndexPage() {
 
       {/* Filters */}
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center">
-            <Filter className="w-5 h-5 mr-2" />
-            Filtros
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="relative">
-              <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-              <Input
-                placeholder="Buscar chamados..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
-              />
+        <CardContent className="pt-6">
+          <div className="flex flex-col lg:flex-row gap-4">
+            <div className="flex-1">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                <Input
+                  placeholder="Buscar chamados..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
             </div>
 
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger>
-                <SelectValue placeholder="Status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos os Status</SelectItem>
-                {Object.entries(STATUS_LABELS).map(([key, label]) => (
-                  <SelectItem key={key} value={key}>{label}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <div className="flex gap-4">
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos os Status</SelectItem>
+                  <SelectItem value="NEW">Novo</SelectItem>
+                  <SelectItem value="IN_PROGRESS">Em Progresso</SelectItem>
+                  <SelectItem value="RESOLVED">Resolvido</SelectItem>
+                  <SelectItem value="CLOSED">Fechado</SelectItem>
+                </SelectContent>
+              </Select>
 
-            <Select value={priorityFilter} onValueChange={setPriorityFilter}>
-              <SelectTrigger>
-                <SelectValue placeholder="Prioridade" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todas as Prioridades</SelectItem>
-                {Object.entries(PRIORITY_LABELS).map(([key, label]) => (
-                  <SelectItem key={key} value={key}>{label}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              <Select value={priorityFilter} onValueChange={setPriorityFilter}>
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="Prioridade" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todas as Prioridades</SelectItem>
+                  <SelectItem value="P1">P1 - Crítica</SelectItem>
+                  <SelectItem value="P2">P2 - Alta</SelectItem>
+                  <SelectItem value="P3">P3 - Média</SelectItem>
+                  <SelectItem value="P4">P4 - Baixa</SelectItem>
+                  <SelectItem value="P5">P5 - Planejamento</SelectItem>
+                </SelectContent>
+              </Select>
+
+              <Button 
+                variant="outline" 
+                size="icon"
+                onClick={() => {
+                  setSearchTerm("");
+                  setStatusFilter("all");
+                  setPriorityFilter("all");
+                }}
+                title="Limpar filtros"
+              >
+                <Filter className="w-4 h-4" />
+              </Button>
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -214,7 +228,7 @@ export default function TicketsIndexPage() {
                     </TableCell>
                     <TableCell>
                       <div>
-                        <div className="font-medium">{ticket.title || 'Sem título'}</div>
+                        <div className="font-medium">{ticket.subject || 'Sem título'}</div>
                         <div className="text-sm text-gray-500 dark:text-gray-400">
                           {ticket.category || 'Sem categoria'}
                         </div>
@@ -245,23 +259,26 @@ export default function TicketsIndexPage() {
                       </div>
                     </TableCell>
                     <TableCell>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setLocation(`/tickets/${ticket.id}`)}
-                      >
-                        <Eye className="w-4 h-4 mr-2" />
-                        Ver
-                      </Button>
-                      <Button
-                        variant="secondary"
-                        size="sm"
-                        onClick={() => handleTakeTicket(ticket.id)}
-                        className="ml-2"
-                      >
-                        <User className="w-4 h-4 mr-2" />
-                        Assumir
-                      </Button>
+                      <div className="flex items-center space-x-2">
+                        <Button 
+                          size="sm" 
+                          variant="outline"
+                          onClick={() => setLocation(`/tickets/${ticket.id}`)}
+                          title="Ver detalhes"
+                        >
+                          <Eye className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          onClick={() => handleTakeTicket(ticket.id)}
+                          className="ml-2"
+                          title="Assumir chamado"
+                        >
+                          <User className="w-4 h-4 mr-2" />
+                          Assumir
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))

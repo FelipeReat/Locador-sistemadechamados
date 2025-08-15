@@ -14,8 +14,10 @@ import {
   TriangleAlert,
   ArrowRightIcon
 } from "lucide-react";
-import { Link } from "wouter";
+import { Link, useLocation as useNavigate } from "wouter";
 import { useAuthenticatedQuery } from "@/hooks/use-api";
+import { Button } from "@/components/ui/button";
+
 
 export default function Dashboard() {
   const { data: metrics, isLoading: metricsLoading } = useAuthenticatedQuery(
@@ -39,6 +41,8 @@ export default function Dashboard() {
   }, {}) || {};
 
   const totalTickets = Object.values(statusData).reduce((sum, count) => sum + (count as number), 0);
+
+  const setLocation = useNavigate();
 
   return (
     <div className="space-y-8">
@@ -142,6 +146,52 @@ export default function Dashboard() {
           <RecentTickets tickets={recentTickets || []} />
         </div>
       </div>
+
+      {/* Quick Actions */}
+        <Card className="bg-white dark:bg-gray-800 shadow-sm">
+          <CardHeader>
+            <CardTitle className="text-lg font-semibold">Ações Rápidas</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <Button 
+                variant="outline" 
+                className="w-full justify-start h-auto p-4"
+                onClick={() => setLocation("/tickets/new?category=access")}
+              >
+                <LaptopIcon className="h-5 w-5 mr-3" />
+                <div className="text-left">
+                  <div className="font-medium">Solicitar Acesso</div>
+                  <div className="text-sm text-gray-500">Sistemas e aplicações</div>
+                </div>
+              </Button>
+
+              <Button 
+                variant="outline" 
+                className="w-full justify-start h-auto p-4"
+                onClick={() => setLocation("/tickets/new?category=password")}
+              >
+                <KeyIcon className="h-5 w-5 mr-3" />
+                <div className="text-left">
+                  <div className="font-medium">Reset de Senha</div>
+                  <div className="text-sm text-gray-500">Redefinir credenciais</div>
+                </div>
+              </Button>
+
+              <Button 
+                variant="outline" 
+                className="w-full justify-start h-auto p-4"
+                onClick={() => setLocation("/tickets/new?category=software")}
+              >
+                <DownloadIcon className="h-5 w-5 mr-3" />
+                <div className="text-left">
+                  <div className="font-medium">Instalar Software</div>
+                  <div className="text-sm text-gray-500">Aplicações corporativas</div>
+                </div>
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
 
       {/* Service Catalog Preview */}
       <Card>

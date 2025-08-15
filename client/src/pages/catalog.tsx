@@ -1,15 +1,16 @@
 import { useState } from "react";
+import { useLocation } from "wouter";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Search, ShoppingCart, Star, Clock } from "lucide-react";
 import { useAuthenticatedQuery } from "@/hooks/use-api";
-import { useLocation } from "wouter";
+
 
 export default function Catalog() {
-  const [searchTerm, setSearchTerm] = useState("");
   const [, setLocation] = useLocation();
+  const [searchTerm, setSearchTerm] = useState("");
 
   const { data: catalogItems = [], isLoading } = useAuthenticatedQuery(
     ['catalog'],
@@ -95,7 +96,7 @@ export default function Catalog() {
                 <p className="text-sm text-gray-600 dark:text-gray-400 mb-4 line-clamp-3">
                   {item.description || 'Sem descrição disponível'}
                 </p>
-                
+
                 <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 mb-4">
                   <div className="flex items-center">
                     <Clock className="w-3 h-3 mr-1" />

@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useAuthenticatedQuery } from "@/hooks/use-api";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, User, Calendar, Clock, AlertCircle, MessageSquare, Settings } from "lucide-react";
+import { ArrowLeft, User, Calendar, Clock, AlertCircle, MessageSquare, Settings, Edit } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
@@ -51,7 +51,12 @@ export default function TicketDetail() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [newComment, setNewComment] = useState("");
-  
+  const [isSubmittingComment, setIsSubmittingComment] = useState(false);
+  const [isEditingTicket, setIsEditingTicket] = useState(false);
+  const [isAddingComment, setIsAddingComment] = useState(false);
+  const [isChangingStatus, setIsChangingStatus] = useState(false);
+  const [selectedStatus, setSelectedStatus] = useState("");
+
   const ticketId = match?.id;
 
   const { data: ticket, isLoading } = useAuthenticatedQuery(
@@ -103,6 +108,35 @@ export default function TicketDetail() {
       });
     },
   });
+
+  const updateTicket = useMutation({
+    mutationFn: async ({ id, status }: { id: string; status: string }) => {
+      return apiRequest("PATCH", `/tickets/${id}`, { status });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['ticket', ticketId] });
+      toast({
+        title: "Chamado atualizado",
+        description: "O status do chamado foi atualizado com sucesso.",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Erro ao atualizar chamado",
+        description: error instanceof Error ? error.message : "Erro desconhecido",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const submitComment = () => {
+    if (newComment.trim()) {
+      setIsSubmittingComment(true);
+      addCommentMutation.mutate(undefined, {
+        onSettled: () => setIsSubmittingComment(false),
+      });
+    }
+  };
 
   if (isLoading) {
     return (
@@ -254,7 +288,7 @@ export default function TicketDetail() {
                   {ticket.createdBy?.name || 'Usuário desconhecido'}
                 </p>
               </div>
-              
+
               <div>
                 <label className="text-sm font-medium text-gray-600 dark:text-gray-400">
                   Responsável
@@ -320,6 +354,134 @@ export default function TicketDetail() {
               )}
             </CardContent>
           </Card>
+
+          {/* Ticket Actions */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Ações do Ticket</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center space-x-3">
+                <Button 
+                  size="sm" 
+                  className="bg-blue-600 hover:bg-blue-700"
+                  onClick={() => setIsEditingTicket(true)}
+                >
+                  <Edit className="w-4 h-4 mr-2" />
+                  Editar
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => setIsAddingComment(true)}
+                >
+                  <MessageSquare className="w-4 h-4 mr-2" />
+                  Adicionar Comentário
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => setIsChangingStatus(true)}
+                >
+                  <Clock className="w-4 h-4 mr-2" />
+                  Alterar Status
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Status Change Dialog */}
+          {isChangingStatus && (
+            <Card className="mt-6 border-orange-200 bg-orange-50 dark:bg-orange-900/20">
+              <CardHeader>
+                <CardTitle className="text-lg">Alterar Status</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione o novo status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="NEW">Novo</SelectItem>
+                      <SelectItem value="TRIAGE">Triagem</SelectItem>
+                      <SelectItem value="IN_PROGRESS">Em Progresso</SelectItem>
+                      <SelectItem value="WAITING_CUSTOMER">Aguardando Cliente</SelectItem>
+                      <SelectItem value="ON_HOLD">Em Espera</SelectItem>
+                      <SelectItem value="RESOLVED">Resolvido</SelectItem>
+                      <SelectItem value="CLOSED">Fechado</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <div className="flex space-x-2">
+                    <Button 
+                      onClick={async () => {
+                        if (selectedStatus && ticket) {
+                          try {
+                            await updateTicket.mutateAsync({
+                              id: ticket.id,
+                              status: selectedStatus
+                            });
+                            setIsChangingStatus(false);
+                            setSelectedStatus("");
+                          } catch (error) {
+                            console.error('Error updating status:', error);
+                          }
+                        }
+                      }}
+                      disabled={!selectedStatus}
+                    >
+                      Confirmar
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      onClick={() => {
+                        setIsChangingStatus(false);
+                        setSelectedStatus("");
+                      }}
+                    >
+                      Cancelar
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Add Comment Section */}
+          {isAddingComment && (
+            <Card className="mt-6 border-blue-200 bg-blue-50 dark:bg-blue-900/20">
+              <CardHeader>
+                <CardTitle className="text-lg">Adicionar Comentário</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <Textarea
+                    placeholder="Digite seu comentário..."
+                    value={newComment}
+                    onChange={(e) => setNewComment(e.target.value)}
+                    rows={4}
+                  />
+                  <div className="flex space-x-2">
+                    <Button 
+                      onClick={submitComment}
+                      disabled={!newComment.trim() || isSubmittingComment}
+                    >
+                      {isSubmittingComment ? "Enviando..." : "Enviar Comentário"}
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      onClick={() => {
+                        setIsAddingComment(false);
+                        setNewComment("");
+                      }}
+                    >
+                      Cancelar
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </div>
       </div>
     </div>
