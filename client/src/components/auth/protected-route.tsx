@@ -14,17 +14,36 @@ export default function ProtectedRoute({ children, requiredRoles }: ProtectedRou
 
   useEffect(() => {
     const checkAuth = async () => {
-      if (!authService.isAuthenticated()) {
+      try {
+        if (!authService.isAuthenticated()) {
+          console.log('Not authenticated, redirecting to login');
+          setLocation("/login");
+          return;
+        }
+
+        // Try to fetch fresh user data if we have a token but no teams
+        const user = authService.getUser();
+        if (user && (!user.teams || user.teams.length === 0)) {
+          console.log('Fetching fresh user data...');
+          const freshUser = await authService.fetchUserData();
+          if (!freshUser) {
+            console.log('Failed to fetch user data, redirecting to login');
+            setLocation("/login");
+            return;
+          }
+        }
+
+        if (requiredRoles && !authService.hasAnyRole(requiredRoles)) {
+          console.log('User does not have required roles, redirecting to dashboard');
+          setLocation("/dashboard");
+          return;
+        }
+
+        setIsChecking(false);
+      } catch (error) {
+        console.error('Auth check failed:', error);
         setLocation("/login");
-        return;
       }
-
-      if (requiredRoles && !authService.hasAnyRole(requiredRoles)) {
-        setLocation("/dashboard"); // Redirect to dashboard if no permission
-        return;
-      }
-
-      setIsChecking(false);
     };
 
     checkAuth();

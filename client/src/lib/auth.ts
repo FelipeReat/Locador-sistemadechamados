@@ -40,7 +40,7 @@ class AuthService {
     }
   }
 
-  async login(username: string, password: string): Promise<void> {
+  async login(username: string, password: string): Promise<AuthUser> {
     const response = await fetch('/api/auth/login', {
       method: 'POST',
       headers: {
@@ -57,14 +57,15 @@ class AuthService {
     const data = await response.json();
     this.setToken(data.token);
     this.setUser(data.user);
+    this.saveToStorage();
 
     // Fetch full user data with teams
     await this.fetchUserData();
 
-    return this.user;
+    return this.user!;
   }
 
-  async register(username: string, password: string, name: string, orgName: string, orgDomain: string): Promise<void> {
+  async register(username: string, password: string, name: string, orgName: string, orgDomain: string): Promise<AuthUser> {
     const response = await fetch('/api/auth/register', {
       method: 'POST',
       headers: {
@@ -81,11 +82,12 @@ class AuthService {
     const data = await response.json();
     this.setToken(data.token);
     this.setUser(data.user);
+    this.saveToStorage();
 
     // Fetch full user data with teams
     await this.fetchUserData();
 
-    return this.user;
+    return this.user!;
   }
 
   async fetchUserData() {
@@ -100,20 +102,23 @@ class AuthService {
       });
 
       if (response.ok) {
-        this.user = await response.json();
+        const userData = await response.json();
+        this.user = userData;
         this.saveToStorage();
         return this.user;
       } else if (response.status === 401 || response.status === 403) {
         // Token is invalid, logout
+        console.log('Token invalid, logging out');
         this.logout();
-        throw new Error('Authentication failed');
+        return null;
+      } else {
+        console.error('Failed to fetch user data:', response.status);
+        return null;
       }
     } catch (error) {
       console.error('Failed to fetch user data:', error);
-      throw error;
+      return null;
     }
-
-    return this.user;
   }
 
   // Method to set the token

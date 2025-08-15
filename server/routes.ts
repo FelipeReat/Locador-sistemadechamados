@@ -110,6 +110,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get current user profile with teams
+  app.get("/api/me", authenticateToken, async (req: AuthenticatedRequest, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+
+      // Get user memberships with team data
+      const memberships = await storage.getUserMemberships(req.user.id);
+      const teams = await Promise.all(
+        memberships.map(async (membership) => {
+          const team = await storage.getTeam(membership.teamId);
+          return {
+            id: team?.id || membership.teamId,
+            name: team?.name || "Unknown Team",
+            roles: membership.roles,
+          };
+        })
+      );
+
+      const userProfile = {
+        ...req.user,
+        teams,
+      };
+
+      // Remove password from response
+      delete userProfile.password;
+
+      res.json(userProfile);
+    } catch (error) {
+      console.error("Get user profile error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   // Authentication routes
   app.post("/api/auth/register", async (req, res) => {
     try {
@@ -223,32 +258,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Seed admin route (unprotected)
-  app.use("/api/seed-admin", (req, res, next) => next());
-
-  // Protected routes
-  app.use("/api", authenticateToken);
-
-  // User routes
-  app.get("/api/me", async (req: AuthenticatedRequest, res) => {
-    try {
-      const memberships = await storage.getUserMemberships(req.user!.id);
-      const teams = await Promise.all(
-        memberships.map(async (m) => {
-          const team = await storage.getTeam(m.teamId);
-          return { ...team, roles: m.roles };
-        })
-      );
-
-      res.json({
-        ...req.user,
-        password: undefined, // Don't send password
-        teams,
-      });
-    } catch (error) {
-      console.error("Get user error:", error);
-      res.status(500).json({ message: "Internal server error" });
+  // Apply authentication to protected routes only
+  app.use("/api", (req, res, next) => {
+    // Skip authentication for these routes
+    const publicRoutes = ["/api/auth/login", "/api/auth/register", "/api/seed-admin", "/api/health"];
+    if (publicRoutes.includes(req.path)) {
+      return next();
     }
+    // Apply authentication for all other API routes
+    authenticateToken(req as AuthenticatedRequest, res, next);
   });
 
   // Dashboard routes
