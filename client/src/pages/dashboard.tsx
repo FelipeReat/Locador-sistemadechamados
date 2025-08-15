@@ -14,35 +14,35 @@ import {
   TriangleAlert,
   ArrowRightIcon
 } from "lucide-react";
-import { Link, useLocation as useNavigate } from "wouter";
+import { Link, useLocation } from "wouter";
 import { useAuthenticatedQuery } from "@/hooks/use-api";
 import { Button } from "@/components/ui/button";
 
 
 export default function Dashboard() {
   const { data: metrics, isLoading: metricsLoading } = useAuthenticatedQuery(
-    'dashboard-metrics',
+    ['dashboard-metrics'],
     '/dashboard/metrics'
   );
 
   const { data: ticketsByStatus, isLoading: statusLoading } = useAuthenticatedQuery(
-    'dashboard-tickets-by-status',
+    ['dashboard-tickets-by-status'],
     '/dashboard/tickets-by-status'
   );
 
   const { data: recentTickets, isLoading: ticketsLoading } = useAuthenticatedQuery(
-    'dashboard-recent-tickets',
+    ['dashboard-recent-tickets'],
     '/dashboard/recent-tickets'
   );
 
-  const statusData = ticketsByStatus?.reduce((acc: Record<string, number>, item: { status: string; count: number }) => {
+  const statusData = Array.isArray(ticketsByStatus) ? ticketsByStatus.reduce((acc: Record<string, number>, item: { status: string; count: number }) => {
     acc[item.status] = item.count;
     return acc;
-  }, {}) || {};
+  }, {}) : {};
 
-  const totalTickets = Object.values(statusData).reduce((sum, count) => sum + (count as number), 0);
+  const totalTickets = Object.values(statusData).reduce((sum: number, count: unknown) => sum + (count as number), 0);
 
-  const setLocation = useNavigate();
+  const [, setLocation] = useLocation();
 
   return (
     <div className="space-y-8">
@@ -61,7 +61,7 @@ export default function Dashboard() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <MetricCard
           title="Chamados Abertos"
-          value={metricsLoading ? "..." : metrics?.openTickets?.toString() || "0"}
+          value={metricsLoading ? "..." : ((metrics as any)?.openTickets?.toString() || "0")}
           change="-12% vs. semana passada"
           changeType="positive"
           icon={TicketIcon}
@@ -71,7 +71,7 @@ export default function Dashboard() {
 
         <MetricCard
           title="SLA em Risco"
-          value={metricsLoading ? "..." : metrics?.slaAtRisk?.toString() || "0"}
+          value={metricsLoading ? "..." : ((metrics as any)?.slaAtRisk?.toString() || "0")}
           change="+5% vs. semana passada"
           changeType="negative"
           icon={AlertTriangleIcon}
@@ -81,7 +81,7 @@ export default function Dashboard() {
 
         <MetricCard
           title="Resolvidos Hoje"
-          value={metricsLoading ? "..." : metrics?.resolvedToday?.toString() || "0"}
+          value={metricsLoading ? "..." : ((metrics as any)?.resolvedToday?.toString() || "0")}
           change="+18% vs. ontem"
           changeType="positive"
           icon={CheckCircleIcon}
@@ -91,7 +91,7 @@ export default function Dashboard() {
 
         <MetricCard
           title="CSAT Médio"
-          value={metricsLoading ? "..." : metrics?.avgCSAT?.toFixed(1) || "0.0"}
+          value={metricsLoading ? "..." : ((metrics as any)?.avgCSAT?.toFixed(1) || "0.0")}
           change="+0.3 vs. mês passado"
           changeType="positive"
           icon={StarIcon}
@@ -121,7 +121,7 @@ export default function Dashboard() {
                 { status: 'WAITING_CUSTOMER', label: 'Aguardando Cliente', count: statusData.WAITING_CUSTOMER || 0, color: 'bg-blue-500' },
                 { status: 'WAITING_APPROVAL', label: 'Aguardando Aprovação', count: statusData.WAITING_APPROVAL || 0, color: 'bg-purple-500' },
               ].map(({ status, label, count, color }) => {
-                const percentage = totalTickets > 0 ? (count / totalTickets) * 100 : 0;
+                const percentage = (totalTickets as number) > 0 ? (count / (totalTickets as number)) * 100 : 0;
                 return (
                   <div key={status} className="flex items-center justify-between">
                     <div className="flex items-center space-x-3">
@@ -143,7 +143,7 @@ export default function Dashboard() {
 
         {/* Recent Tickets */}
         <div>
-          <RecentTickets tickets={recentTickets || []} />
+          <RecentTickets tickets={Array.isArray(recentTickets) ? recentTickets : []} />
         </div>
       </div>
 
