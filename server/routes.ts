@@ -27,20 +27,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Create initial admin user (for development)
   app.post("/api/seed-admin", async (req, res) => {
     try {
-      // Check if admin email already exists
-      const existingAdmin = await storage.getUserByEmail("admin@servicedesk.com");
+      // Check if admin username already exists
+      const existingAdmin = await storage.getUserByUsername("admin");
       if (existingAdmin) {
         return res.json({
           message: "Admin already exists",
           credentials: {
-            email: "admin@servicedesk.com",
+            username: "admin",
             password: "admin123"
           }
         });
       }
 
       const adminData = {
-        email: "admin@servicedesk.com",
+        username: "admin",
         password: "admin123",
         name: "Administrador",
         orgName: "ServiceDesk Pro",
@@ -62,7 +62,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const hashedPassword = await hashPassword(adminData.password);
       const user = await storage.createUser({
         orgId: org.id,
-        email: adminData.email,
+        username: adminData.username,
         name: adminData.name,
         password: hashedPassword,
         mfaSecret: null,
@@ -97,7 +97,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({
         message: "Admin created successfully",
         credentials: {
-          email: adminData.email,
+          username: adminData.username,
           password: adminData.password
         }
       });
@@ -116,9 +116,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const data = registerSchema.parse(req.body);
 
       // Check if user already exists
-      const existingUser = await storage.getUserByEmail(data.email);
+      const existingUser = await storage.getUserByUsername(data.username);
       if (existingUser) {
-        return res.status(400).json({ message: "User already exists" });
+        return res.status(400).json({ message: "Nome de usuário já existe" });
       }
 
       // Check if organization domain already exists
@@ -138,7 +138,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const hashedPassword = await hashPassword(data.password);
       const user = await storage.createUser({
         orgId: org.id,
-        email: data.email,
+        username: data.username,
         name: data.name,
         password: hashedPassword,
         mfaSecret: null,
@@ -170,7 +170,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         token,
         user: {
           id: user.id,
-          email: user.email,
+          username: user.username,
           name: user.name,
           orgId: user.orgId,
         },
@@ -188,14 +188,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const data = loginSchema.parse(req.body);
 
-      const user = await storage.getUserByEmail(data.email);
+      // Get user
+      const user = await storage.getUserByUsername(data.username);
       if (!user || !user.isActive) {
-        return res.status(401).json({ message: "Invalid credentials" });
+        return res.status(401).json({ message: "Credenciais inválidas" });
       }
 
-      const isValidPassword = await comparePassword(data.password, user.password);
-      if (!isValidPassword) {
-        return res.status(401).json({ message: "Invalid credentials" });
+      // Verify password
+      const isValid = await comparePassword(data.password, user.password);
+      if (!isValid) {
+        return res.status(401).json({ message: "Credenciais inválidas" });
       }
 
       // Update last login
@@ -207,7 +209,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         token,
         user: {
           id: user.id,
-          email: user.email,
+          username: user.username,
           name: user.name,
           orgId: user.orgId,
         },
@@ -282,8 +284,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const assignee = ticket.assigneeId ? await storage.getUser(ticket.assigneeId) : null;
           return {
             ...ticket,
-            requester: requester ? { id: requester.id, name: requester.name, email: requester.email } : null,
-            assignee: assignee ? { id: assignee.id, name: assignee.name, email: assignee.email } : null,
+            requester: requester ? { id: requester.id, username: requester.username, name: requester.name, email: requester.email } : null,
+            assignee: assignee ? { id: assignee.id, username: assignee.username, name: assignee.name, email: assignee.email } : null,
           };
         })
       );
@@ -320,8 +322,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const team = ticket.teamId ? await storage.getTeam(ticket.teamId) : null;
           return {
             ...ticket,
-            requester: requester ? { id: requester.id, name: requester.name, email: requester.email } : null,
-            assignee: assignee ? { id: assignee.id, name: assignee.name, email: assignee.email } : null,
+            requester: requester ? { id: requester.id, username: requester.username, name: requester.name, email: requester.email } : null,
+            assignee: assignee ? { id: assignee.id, username: assignee.username, name: assignee.name, email: assignee.email } : null,
             team: team ? { id: team.id, name: team.name } : null,
           };
         })
@@ -354,15 +356,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const author = await storage.getUser(comment.authorId);
           return {
             ...comment,
-            author: author ? { id: author.id, name: author.name, email: author.email } : null,
+            author: author ? { id: author.id, username: author.username, name: author.name, email: author.email } : null,
           };
         })
       );
 
       res.json({
         ...ticket,
-        requester: requester ? { id: requester.id, name: requester.name, email: requester.email } : null,
-        assignee: assignee ? { id: assignee.id, name: assignee.name, email: assignee.email } : null,
+        requester: requester ? { id: requester.id, username: requester.username, name: requester.name, email: requester.email } : null,
+        assignee: assignee ? { id: assignee.id, username: assignee.username, name: assignee.name, email: assignee.email } : null,
         team: team ? { id: team.id, name: team.name } : null,
         comments: enrichedComments,
         events,
@@ -398,7 +400,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       // Send notification emails
-      jobQueue.addJob('SEND_NOTIFICATION', {
+      notificationQueue.addJob('SEND_NOTIFICATION', {
         type: 'TICKET_CREATED',
         ticketId: ticket.id,
         message: `New ticket created: ${ticket.subject}`,
@@ -407,9 +409,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Schedule SLA checks
       const slaCheckTime = new Date(dueAt.getTime() - 60 * 60 * 1000); // 1 hour before
       if (slaCheckTime > new Date()) {
-        jobQueue.addJob('CHECK_SLA_BREACH', { ticketId: ticket.id }, slaCheckTime);
+        slaQueue.addJob('CHECK_SLA_BREACH', { ticketId: ticket.id }, slaCheckTime);
       }
-      jobQueue.addJob('CHECK_SLA_BREACH', { ticketId: ticket.id }, dueAt);
+      slaQueue.addJob('CHECK_SLA_BREACH', { ticketId: ticket.id }, dueAt);
 
       res.status(201).json(ticket);
     } catch (error) {
@@ -436,7 +438,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         // Schedule CSAT survey
         const csatDelay = 30 * 60 * 1000; // 30 minutes after resolution
-        jobQueue.addJob('SEND_CSAT_SURVEY', { ticketId: ticket.id }, new Date(Date.now() + csatDelay));
+        automationQueue.addJob('SEND_CSAT_SURVEY', { ticketId: ticket.id }, new Date(Date.now() + csatDelay));
       }
 
       if (updates.status === 'CLOSED' && ticket.status !== 'CLOSED') {
@@ -447,7 +449,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Send notification if assignee changed
       if (updates.assigneeId && updates.assigneeId !== ticket.assigneeId) {
-        jobQueue.addJob('SEND_NOTIFICATION', {
+        notificationQueue.addJob('SEND_NOTIFICATION', {
           type: 'TICKET_ASSIGNED',
           ticketId: ticket.id,
           message: `Ticket assigned to you`,
@@ -482,7 +484,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       res.status(201).json({
         ...comment,
-        author: author ? { id: author.id, name: author.name, email: author.email } : null,
+        author: author ? { id: author.id, username: author.username, name: author.name, email: author.email } : null,
       });
     } catch (error) {
       console.error("Create comment error:", error);
@@ -618,9 +620,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       // Check if user already exists
-      const existingUser = await storage.getUserByEmail(data.email);
+      const existingUser = await storage.getUserByUsername(data.username);
       if (existingUser) {
-        return res.status(400).json({ message: "User already exists" });
+        return res.status(400).json({ message: "Nome de usuário já existe" });
       }
 
       const hashedPassword = await hashPassword(data.password);

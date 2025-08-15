@@ -19,7 +19,7 @@ class AuthService {
   private loadFromStorage() {
     const token = localStorage.getItem('auth-token');
     const userData = localStorage.getItem('auth-user');
-    
+
     if (token && userData) {
       this.token = token;
       try {
@@ -40,24 +40,23 @@ class AuthService {
     }
   }
 
-  async login(email: string, password: string) {
+  async login(username: string, password: string): Promise<void> {
     const response = await fetch('/api/auth/login', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify({ username, password }),
     });
 
     if (!response.ok) {
       const error = await response.json();
-      throw new Error(error.message || 'Login failed');
+      throw new Error(error.message || 'Erro no login');
     }
 
     const data = await response.json();
-    this.token = data.token;
-    this.user = data.user;
-    this.saveToStorage();
+    this.setToken(data.token);
+    this.setUser(data.user);
 
     // Fetch full user data with teams
     await this.fetchUserData();
@@ -65,24 +64,23 @@ class AuthService {
     return this.user;
   }
 
-  async register(email: string, password: string, name: string, orgName: string, orgDomain: string) {
+  async register(username: string, password: string, name: string, orgName: string, orgDomain: string): Promise<void> {
     const response = await fetch('/api/auth/register', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ email, password, name, orgName, orgDomain }),
+      body: JSON.stringify({ username, password, name, orgName, orgDomain }),
     });
 
     if (!response.ok) {
       const error = await response.json();
-      throw new Error(error.message || 'Registration failed');
+      throw new Error(error.message || 'Erro no registro');
     }
 
     const data = await response.json();
-    this.token = data.token;
-    this.user = data.user;
-    this.saveToStorage();
+    this.setToken(data.token);
+    this.setUser(data.user);
 
     // Fetch full user data with teams
     await this.fetchUserData();
@@ -116,6 +114,16 @@ class AuthService {
     }
 
     return this.user;
+  }
+
+  // Method to set the token
+  setToken(token: string | null) {
+    this.token = token;
+  }
+
+  // Method to set the user
+  setUser(user: AuthUser | null) {
+    this.user = user;
   }
 
   logout() {

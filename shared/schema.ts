@@ -7,7 +7,7 @@ import { z } from "zod";
 export const roleEnum = pgEnum('role', ['ADMIN', 'AGENT', 'APPROVER', 'REQUESTER', 'AUDITOR']);
 export const priorityEnum = pgEnum('priority', ['P1', 'P2', 'P3', 'P4', 'P5']);
 export const ticketStatusEnum = pgEnum('ticket_status', [
-  'NEW', 'TRIAGE', 'IN_PROGRESS', 'WAITING_CUSTOMER', 
+  'NEW', 'TRIAGE', 'IN_PROGRESS', 'WAITING_CUSTOMER',
   'WAITING_APPROVAL', 'ON_HOLD', 'RESOLVED', 'CLOSED', 'CANCELED'
 ]);
 export const commentVisibilityEnum = pgEnum('comment_visibility', ['PUBLIC', 'INTERNAL']);
@@ -52,6 +52,7 @@ export const users = pgTable("users", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   orgId: varchar("org_id").references(() => organizations.id).notNull(),
   email: text("email").notNull().unique(),
+  username: text("username").notNull().unique(), // Added username
   name: text("name").notNull(),
   password: text("password").notNull(),
   mfaSecret: text("mfa_secret"),
@@ -342,16 +343,16 @@ export type CSATSurvey = typeof csatSurveys.$inferSelect;
 
 // Auth schemas
 export const loginSchema = z.object({
-  email: z.string().email(),
-  password: z.string().min(1),
+  username: z.string().min(1, "Nome de usuário é obrigatório"),
+  password: z.string().min(1, "Senha é obrigatória"),
 });
 
 export const registerSchema = z.object({
-  email: z.string().email(),
-  password: z.string().min(8),
-  name: z.string().min(1),
-  orgName: z.string().min(1),
-  orgDomain: z.string().min(1),
+  username: z.string().min(3, "Nome de usuário deve ter pelo menos 3 caracteres"),
+  password: z.string().min(8, "Senha deve ter pelo menos 8 caracteres"),
+  name: z.string().min(1, "Nome é obrigatório"),
+  orgName: z.string().min(1, "Nome da organização é obrigatório"),
+  orgDomain: z.string().min(1, "Domínio da organização é obrigatório"),
 });
 
 export type LoginRequest = z.infer<typeof loginSchema>;

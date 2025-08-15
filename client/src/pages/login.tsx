@@ -13,12 +13,12 @@ import { authService } from "@/lib/auth";
 import { Headset } from "lucide-react";
 
 const loginSchema = z.object({
-  email: z.string().email("Email inválido"),
+  username: z.string().min(1, "Nome de usuário é obrigatório"),
   password: z.string().min(1, "Senha é obrigatória"),
 });
 
 const registerSchema = z.object({
-  email: z.string().email("Email inválido"),
+  username: z.string().min(3, "Nome de usuário deve ter pelo menos 3 caracteres"),
   password: z.string().min(8, "Senha deve ter pelo menos 8 caracteres"),
   name: z.string().min(1, "Nome é obrigatório"),
   orgName: z.string().min(1, "Nome da organização é obrigatório"),
@@ -36,7 +36,7 @@ export default function Login() {
   const loginForm = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      email: "",
+      username: "",
       password: "",
     },
   });
@@ -44,7 +44,7 @@ export default function Login() {
   const registerForm = useForm<RegisterFormData>({
     resolver: zodResolver(registerSchema),
     defaultValues: {
-      email: "",
+      username: "",
       password: "",
       name: "",
       orgName: "",
@@ -55,7 +55,7 @@ export default function Login() {
   const onLogin = async (data: LoginFormData) => {
     setIsLoading(true);
     try {
-      await authService.login(data.email, data.password);
+      await authService.login(data.username, data.password);
       toast({
         title: "Login realizado com sucesso",
         description: "Bem-vindo ao ServiceDesk Pro!",
@@ -76,7 +76,7 @@ export default function Login() {
   const onRegister = async (data: RegisterFormData) => {
     setIsLoading(true);
     try {
-      await authService.register(data.email, data.password, data.name, data.orgName, data.orgDomain);
+      await authService.register(data.username, data.password, data.name, data.orgName, data.orgDomain);
       toast({
         title: "Conta criada com sucesso",
         description: "Bem-vindo ao ServiceDesk Pro!",
@@ -121,14 +121,13 @@ export default function Login() {
                 <form onSubmit={loginForm.handleSubmit(onLogin)} className="space-y-4">
                   <FormField
                     control={loginForm.control}
-                    name="email"
+                    name="username"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Email</FormLabel>
+                        <FormLabel>Nome de Usuário</FormLabel>
                         <FormControl>
                           <Input
-                            type="email"
-                            placeholder="usuario@empresa.com"
+                            placeholder="admin"
                             {...field}
                           />
                         </FormControl>
@@ -188,14 +187,13 @@ export default function Login() {
 
                   <FormField
                     control={registerForm.control}
-                    name="email"
+                    name="username"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Email</FormLabel>
+                        <FormLabel>Nome de Usuário</FormLabel>
                         <FormControl>
                           <Input
-                            type="email"
-                            placeholder="admin@empresa.com"
+                            placeholder="meuusuario"
                             {...field}
                           />
                         </FormControl>

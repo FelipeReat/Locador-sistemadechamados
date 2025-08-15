@@ -34,6 +34,7 @@ export interface IStorage {
   // Users
   getUser(id: string): Promise<User | undefined>;
   getUserByEmail(email: string): Promise<User | undefined>;
+  getUserByUsername(username: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   updateUser(id: string, updates: Partial<User>): Promise<User>;
   getUsersByOrg(orgId: string): Promise<User[]>;
@@ -216,6 +217,7 @@ export class MemStorage implements IStorage {
     const admin: User = {
       id: "user-1",
       orgId: org.id,
+      username: "admin", // Added username
       email: "admin@acme.com",
       name: "Administrador do Sistema",
       password: "$2b$10$tedq4kySn0U6sSGCVMCiFuEeqxD31gEv//fw/AZw2syfxKYmQiRo.", // admin123
@@ -231,6 +233,7 @@ export class MemStorage implements IStorage {
     const agent1: User = {
       id: "user-2",
       orgId: org.id,
+      username: "roberto.silva", // Added username
       email: "roberto.silva@acme.com",
       name: "Roberto Silva",
       password: "$2b$10$hash",
@@ -406,6 +409,25 @@ export class MemStorage implements IStorage {
     return user;
   }
 
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    const cacheKey = `user:username:${username}`;
+
+    // Try cache first
+    const cached = await this.cacheGet(cacheKey);
+    if (cached) {
+      return cached;
+    }
+
+    const user = Array.from(this.users.values()).find(user => user.username === username);
+
+    // Cache the result
+    if (user) {
+      await this.cacheSet(cacheKey, user, 300); // 5 minutes
+    }
+
+    return user;
+  }
+
   async createUser(insertUser: InsertUser): Promise<User> {
     const id = randomUUID();
     const user: User = {
@@ -431,7 +453,12 @@ export class MemStorage implements IStorage {
     const updatedUser = { ...user, ...updates, updatedAt: new Date() };
     this.users.set(id, updatedUser);
     await this.cacheDel(`user:${id}`); // Clear specific user cache
-    await this.cacheDel(`user:email:${user.email}`); // Clear email cache
+    if (user.email) {
+      await this.cacheDel(`user:email:${user.email}`); // Clear email cache
+    }
+    if (user.username) {
+      await this.cacheDel(`user:username:${user.username}`); // Clear username cache
+    }
     return updatedUser;
   }
 

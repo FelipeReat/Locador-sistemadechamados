@@ -56,6 +56,17 @@ app.use((req, res, next) => {
     serveStatic(app);
   }
 
+  // Seed admin user on startup
+  // This assumes that a seedAdmin function exists in './seed-admin'
+  // and that it handles the creation of the admin user.
+  // We also log the admin credentials for convenience.
+  if (typeof seedAdmin === 'function') {
+    seedAdmin().catch(console.error);
+    log(`Admin credentials: username=admin, password=admin123`);
+  } else {
+    log("seedAdmin function not found. Admin user will not be seeded.");
+  }
+
   // ALWAYS serve the app on the port specified in the environment variable PORT
   // Other ports are firewalled. Default to 5000 if not specified.
   // this serves both the API and the client.
@@ -69,3 +80,18 @@ app.use((req, res, next) => {
     log(`serving on port ${port}`);
   });
 })();
+
+// Mock seedAdmin function for demonstration if it's not provided elsewhere
+// In a real scenario, this would be imported from './seed-admin'
+if (typeof seedAdmin === 'undefined') {
+  const log = console.log; // Use console.log if log is not available
+  const seedAdmin = async () => {
+    // Simulate admin user creation
+    log("Simulating admin user creation...");
+    // In a real implementation, this would involve database operations
+    // e.g., User.create({ username: 'admin', password: 'admin123', role: 'admin' });
+  };
+  // Make seedAdmin globally available for the IIFE above to use it
+  // Note: This is a workaround for the example, in a real project import it properly.
+  global.seedAdmin = seedAdmin;
+}
