@@ -11,7 +11,7 @@ import TicketCard from "@/components/tickets/ticket-card";
 import { PlusIcon, SearchIcon, FilterIcon } from "lucide-react";
 import { STATUS_LABELS, PRIORITY_LABELS } from "@/lib/constants";
 
-export default function TicketsIndex() {
+export default TicketsIndexPage() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
   const [priorityFilter, setPriorityFilter] = useState("");
@@ -214,7 +214,7 @@ const priorityColors = {
   'P5': 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200',
 };
 
-export default function TicketsIndex() {
+function TicketsIndexPage() {
   const [, setLocation] = useLocation();
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
