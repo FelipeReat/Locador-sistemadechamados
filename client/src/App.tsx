@@ -19,6 +19,8 @@ import AdminUsers from "./pages/admin/users";
 import AdminTeams from "./pages/admin/teams";
 import AdminAutomations from "./pages/admin/automations";
 import AdminSLA from "./pages/admin/sla";
+import CSATSurvey from "./pages/csat-survey";
+import Reports from "./pages/reports";
 import NotFound from "./pages/not-found";
 
 // Layout
@@ -73,6 +75,11 @@ function AuthenticatedApp() {
             <AdminSLA />
           </ProtectedRoute>
         </Route>
+        <Route path="/reports">
+          <ProtectedRoute requiredRoles={['ADMIN', 'AGENT']}>
+            <Reports />
+          </ProtectedRoute>
+        </Route>
         <Route component={NotFound} />
       </Switch>
     </AppLayout>
@@ -120,6 +127,11 @@ function Router() {
 
   if (!isAuthenticated || location === "/login") {
     return <Login />;
+  }
+
+  // Special case for CSAT survey (no authentication required)
+  if (location.startsWith("/csat/")) {
+    return <CSATSurvey />;
   }
 
   return <AuthenticatedApp />;

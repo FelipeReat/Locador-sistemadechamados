@@ -28,6 +28,7 @@ import {
   type CSATSurvey,
 } from "@shared/schema";
 import { randomUUID } from "crypto";
+import redis from './redis';
 
 export interface IStorage {
   // Users
@@ -130,6 +131,35 @@ export class MemStorage implements IStorage {
   private slas: Map<string, SLA> = new Map();
   private departments: Map<string, Department> = new Map();
   private ticketCounter = 1;
+
+  private cacheGet = async (key: string): Promise<any> => {
+    try {
+      const cached = await redis.get(key);
+      return cached ? JSON.parse(cached) : null;
+    } catch (error) {
+      console.warn('Redis cache get failed:', error);
+      return null;
+    }
+  };
+
+  private cacheSet = async (key: string, value: any, ttlSeconds: number = 300): Promise<void> => {
+    try {
+      await redis.setex(key, ttlSeconds, JSON.stringify(value));
+    } catch (error) {
+      console.warn('Redis cache set failed:', error);
+    }
+  };
+
+  private cacheDel = async (pattern: string): Promise<void> => {
+    try {
+      const keys = await redis.keys(pattern);
+      if (keys.length > 0) {
+        await redis.del(...keys);
+      }
+    } catch (error) {
+      console.warn('Redis cache delete failed:', error);
+    }
+  };
 
   constructor() {
     this.initializeData();
@@ -344,11 +374,36 @@ export class MemStorage implements IStorage {
 
   // User methods
   async getUser(id: string): Promise<User | undefined> {
-    return this.users.get(id);
+    const cacheKey = `user:${id}`;
+    const cached = await this.cacheGet(cacheKey);
+    if (cached) {
+      return cached;
+    }
+
+    const user = this.users.get(id);
+    if (user) {
+      await this.cacheSet(cacheKey, user, 300); // 5 minutes
+    }
+    return user;
   }
 
   async getUserByEmail(email: string): Promise<User | undefined> {
-    return Array.from(this.users.values()).find(user => user.email === email);
+    const cacheKey = `user:email:${email}`;
+
+    // Try cache first
+    const cached = await this.cacheGet(cacheKey);
+    if (cached) {
+      return cached;
+    }
+
+    const user = Array.from(this.users.values()).find(user => user.email === email);
+
+    // Cache the result
+    if (user) {
+      await this.cacheSet(cacheKey, user, 300); // 5 minutes
+    }
+
+    return user;
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
@@ -361,29 +416,60 @@ export class MemStorage implements IStorage {
       updatedAt: new Date(),
     };
     this.users.set(id, user);
+    await this.cacheDel(`user:*`); // Clear user cache
     return user;
   }
 
   async updateUser(id: string, updates: Partial<User>): Promise<User> {
     const user = this.users.get(id);
     if (!user) throw new Error("User not found");
-    
+
     const updatedUser = { ...user, ...updates, updatedAt: new Date() };
     this.users.set(id, updatedUser);
+    await this.cacheDel(`user:${id}`); // Clear specific user cache
+    await this.cacheDel(`user:email:${user.email}`); // Clear email cache
     return updatedUser;
   }
 
   async getUsersByOrg(orgId: string): Promise<User[]> {
-    return Array.from(this.users.values()).filter(user => user.orgId === orgId);
+    const cacheKey = `users:org:${orgId}`;
+    const cached = await this.cacheGet(cacheKey);
+    if (cached) {
+      return cached;
+    }
+
+    const users = Array.from(this.users.values()).filter(user => user.orgId === orgId);
+    await this.cacheSet(cacheKey, users, 300); // 5 minutes
+    return users;
   }
 
   // Organization methods
   async getOrganization(id: string): Promise<Organization | undefined> {
-    return this.organizations.get(id);
+    const cacheKey = `organization:${id}`;
+    const cached = await this.cacheGet(cacheKey);
+    if (cached) {
+      return cached;
+    }
+
+    const org = this.organizations.get(id);
+    if (org) {
+      await this.cacheSet(cacheKey, org, 300); // 5 minutes
+    }
+    return org;
   }
 
   async getOrganizationByDomain(domain: string): Promise<Organization | undefined> {
-    return Array.from(this.organizations.values()).find(org => org.domain === domain);
+    const cacheKey = `organization:domain:${domain}`;
+    const cached = await this.cacheGet(cacheKey);
+    if (cached) {
+      return cached;
+    }
+
+    const org = Array.from(this.organizations.values()).find(org => org.domain === domain);
+    if (org) {
+      await this.cacheSet(cacheKey, org, 300); // 5 minutes
+    }
+    return org;
   }
 
   async createOrganization(insertOrg: InsertOrganization): Promise<Organization> {
@@ -395,25 +481,48 @@ export class MemStorage implements IStorage {
       updatedAt: new Date(),
     };
     this.organizations.set(id, org);
+    await this.cacheDel(`organization:*`); // Clear organization cache
     return org;
   }
 
   async updateOrganization(id: string, updates: Partial<Organization>): Promise<Organization> {
     const org = this.organizations.get(id);
     if (!org) throw new Error("Organization not found");
-    
+
     const updatedOrg = { ...org, ...updates, updatedAt: new Date() };
     this.organizations.set(id, updatedOrg);
+    await this.cacheDel(`organization:${id}`); // Clear specific org cache
+    if (org.domain) {
+      await this.cacheDel(`organization:domain:${org.domain}`); // Clear domain cache
+    }
     return updatedOrg;
   }
 
   // Team methods
   async getTeam(id: string): Promise<Team | undefined> {
-    return this.teams.get(id);
+    const cacheKey = `team:${id}`;
+    const cached = await this.cacheGet(cacheKey);
+    if (cached) {
+      return cached;
+    }
+
+    const team = this.teams.get(id);
+    if (team) {
+      await this.cacheSet(cacheKey, team, 300); // 5 minutes
+    }
+    return team;
   }
 
   async getTeamsByOrg(orgId: string): Promise<Team[]> {
-    return Array.from(this.teams.values()).filter(team => team.orgId === orgId);
+    const cacheKey = `teams:org:${orgId}`;
+    const cached = await this.cacheGet(cacheKey);
+    if (cached) {
+      return cached;
+    }
+
+    const teams = Array.from(this.teams.values()).filter(team => team.orgId === orgId);
+    await this.cacheSet(cacheKey, teams, 300); // 5 minutes
+    return teams;
   }
 
   async createTeam(insertTeam: InsertTeam): Promise<Team> {
@@ -424,25 +533,44 @@ export class MemStorage implements IStorage {
       createdAt: new Date(),
     };
     this.teams.set(id, team);
+    await this.cacheDel(`teams:org:${team.orgId}`); // Clear org team cache
     return team;
   }
 
   async updateTeam(id: string, updates: Partial<Team>): Promise<Team> {
     const team = this.teams.get(id);
     if (!team) throw new Error("Team not found");
-    
+
     const updatedTeam = { ...team, ...updates };
     this.teams.set(id, updatedTeam);
+    await this.cacheDel(`team:${id}`); // Clear specific team cache
+    await this.cacheDel(`teams:org:${team.orgId}`); // Clear org team cache
     return updatedTeam;
   }
 
   // Membership methods
   async getUserMemberships(userId: string): Promise<Membership[]> {
-    return Array.from(this.memberships.values()).filter(mem => mem.userId === userId);
+    const cacheKey = `memberships:user:${userId}`;
+    const cached = await this.cacheGet(cacheKey);
+    if (cached) {
+      return cached;
+    }
+
+    const memberships = Array.from(this.memberships.values()).filter(mem => mem.userId === userId);
+    await this.cacheSet(cacheKey, memberships, 300); // 5 minutes
+    return memberships;
   }
 
   async getTeamMemberships(teamId: string): Promise<Membership[]> {
-    return Array.from(this.memberships.values()).filter(mem => mem.teamId === teamId);
+    const cacheKey = `memberships:team:${teamId}`;
+    const cached = await this.cacheGet(cacheKey);
+    if (cached) {
+      return cached;
+    }
+
+    const memberships = Array.from(this.memberships.values()).filter(mem => mem.teamId === teamId && mem.isActive);
+    await this.cacheSet(cacheKey, memberships, 300); // 5 minutes
+    return memberships;
   }
 
   async createMembership(insertMembership: Omit<Membership, 'id' | 'createdAt'>): Promise<Membership> {
@@ -453,25 +581,49 @@ export class MemStorage implements IStorage {
       createdAt: new Date(),
     };
     this.memberships.set(id, membership);
+    await this.cacheDel(`memberships:user:${membership.userId}`);
+    await this.cacheDel(`memberships:team:${membership.teamId}`);
     return membership;
   }
 
   async updateMembership(id: string, updates: Partial<Membership>): Promise<Membership> {
     const membership = this.memberships.get(id);
     if (!membership) throw new Error("Membership not found");
-    
+
     const updatedMembership = { ...membership, ...updates };
     this.memberships.set(id, updatedMembership);
+    await this.cacheDel(`memberships:user:${membership.userId}`);
+    await this.cacheDel(`memberships:team:${membership.teamId}`);
     return updatedMembership;
   }
 
   // Ticket methods
   async getTicket(id: string): Promise<Ticket | undefined> {
-    return this.tickets.get(id);
+    const cacheKey = `ticket:${id}`;
+    const cached = await this.cacheGet(cacheKey);
+    if (cached) {
+      return cached;
+    }
+
+    const ticket = this.tickets.get(id);
+    if (ticket) {
+      await this.cacheSet(cacheKey, ticket, 300); // 5 minutes
+    }
+    return ticket;
   }
 
   async getTicketByCode(code: string): Promise<Ticket | undefined> {
-    return Array.from(this.tickets.values()).find(ticket => ticket.code === code);
+    const cacheKey = `ticket:code:${code}`;
+    const cached = await this.cacheGet(cacheKey);
+    if (cached) {
+      return cached;
+    }
+
+    const ticket = Array.from(this.tickets.values()).find(ticket => ticket.code === code);
+    if (ticket) {
+      await this.cacheSet(cacheKey, ticket, 300); // 5 minutes
+    }
+    return ticket;
   }
 
   async getTickets(filters: {
@@ -485,6 +637,14 @@ export class MemStorage implements IStorage {
     limit?: number;
     offset?: number;
   }): Promise<Ticket[]> {
+    // Cache key based on filters
+    const cacheKey = `tickets:org:${filters.orgId}:${filters.status || 'all'}:${filters.priority || 'all'}:${filters.teamId || 'all'}:${filters.assigneeId || 'all'}:${filters.requesterId || 'all'}:${filters.search || 'none'}:${filters.limit || 'nolimit'}:${filters.offset || 'nooffset'}`;
+
+    const cached = await this.cacheGet(cacheKey);
+    if (cached) {
+      return cached;
+    }
+
     let tickets = Array.from(this.tickets.values()).filter(ticket => ticket.orgId === filters.orgId);
 
     if (filters.status) {
@@ -509,7 +669,7 @@ export class MemStorage implements IStorage {
 
     if (filters.search) {
       const search = filters.search.toLowerCase();
-      tickets = tickets.filter(ticket => 
+      tickets = tickets.filter(ticket =>
         ticket.subject.toLowerCase().includes(search) ||
         ticket.description.toLowerCase().includes(search) ||
         ticket.code.toLowerCase().includes(search)
@@ -527,13 +687,14 @@ export class MemStorage implements IStorage {
       tickets = tickets.slice(0, filters.limit);
     }
 
+    await this.cacheSet(cacheKey, tickets, 300); // 5 minutes
     return tickets;
   }
 
   async createTicket(insertTicket: InsertTicket): Promise<Ticket> {
     const id = randomUUID();
     const code = `SD-${new Date().getFullYear()}-${String(this.ticketCounter++).padStart(4, '0')}`;
-    
+
     const ticket: Ticket = {
       ...insertTicket,
       id,
@@ -543,7 +704,7 @@ export class MemStorage implements IStorage {
       createdAt: new Date(),
       updatedAt: new Date(),
     };
-    
+
     this.tickets.set(id, ticket);
 
     // Create initial event
@@ -556,13 +717,16 @@ export class MemStorage implements IStorage {
       description: "Chamado criado",
     });
 
+    await this.cacheDel(`tickets:org:${ticket.orgId}`); // Invalidate tickets list cache for the org
+    await this.cacheDel(`ticket:code:${ticket.code}`); // Invalidate ticket by code cache
+
     return ticket;
   }
 
   async updateTicket(id: string, updates: Partial<Ticket>): Promise<Ticket> {
     const ticket = this.tickets.get(id);
     if (!ticket) throw new Error("Ticket not found");
-    
+
     const updatedTicket = { ...ticket, ...updates, updatedAt: new Date() };
     this.tickets.set(id, updatedTicket);
 
@@ -578,13 +742,27 @@ export class MemStorage implements IStorage {
       });
     }
 
+    // Clear cache
+    await this.cacheDel(`ticket:${id}`);
+    await this.cacheDel(`ticket:code:${ticket.code}`);
+    await this.cacheDel(`tickets:org:${ticket.orgId}`);
+
     return updatedTicket;
   }
 
   async getTicketEvents(ticketId: string): Promise<TicketEvent[]> {
-    return Array.from(this.ticketEvents.values())
+    const cacheKey = `ticketEvents:${ticketId}`;
+    const cached = await this.cacheGet(cacheKey);
+    if (cached) {
+      return cached;
+    }
+
+    const events = Array.from(this.ticketEvents.values())
       .filter(event => event.ticketId === ticketId)
       .sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
+
+    await this.cacheSet(cacheKey, events, 300); // 5 minutes
+    return events;
   }
 
   async createTicketEvent(insertEvent: Omit<TicketEvent, 'id' | 'createdAt'>): Promise<TicketEvent> {
@@ -595,14 +773,24 @@ export class MemStorage implements IStorage {
       createdAt: new Date(),
     };
     this.ticketEvents.set(id, event);
+    await this.cacheDel(`ticketEvents:${insertEvent.ticketId}`); // Invalidate ticket events cache
     return event;
   }
 
   // Ticket Comment methods
   async getTicketComments(ticketId: string): Promise<TicketComment[]> {
-    return Array.from(this.ticketComments.values())
+    const cacheKey = `ticketComments:${ticketId}`;
+    const cached = await this.cacheGet(cacheKey);
+    if (cached) {
+      return cached;
+    }
+
+    const comments = Array.from(this.ticketComments.values())
       .filter(comment => comment.ticketId === ticketId)
       .sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
+
+    await this.cacheSet(cacheKey, comments, 300); // 5 minutes
+    return comments;
   }
 
   async createTicketComment(insertComment: InsertTicketComment): Promise<TicketComment> {
@@ -614,17 +802,37 @@ export class MemStorage implements IStorage {
       updatedAt: new Date(),
     };
     this.ticketComments.set(id, comment);
+    await this.cacheDel(`ticketComments:${insertComment.ticketId}`); // Invalidate ticket comments cache
     return comment;
   }
 
   // Service Catalog methods
   async getServiceCatalog(orgId: string): Promise<ServiceCatalog[]> {
-    return Array.from(this.serviceCatalog.values())
+    const cacheKey = `serviceCatalog:org:${orgId}`;
+    const cached = await this.cacheGet(cacheKey);
+    if (cached) {
+      return cached;
+    }
+
+    const items = Array.from(this.serviceCatalog.values())
       .filter(item => item.orgId === orgId && item.isActive);
+
+    await this.cacheSet(cacheKey, items, 300); // 5 minutes
+    return items;
   }
 
   async getServiceCatalogItem(id: string): Promise<ServiceCatalog | undefined> {
-    return this.serviceCatalog.get(id);
+    const cacheKey = `serviceCatalogItem:${id}`;
+    const cached = await this.cacheGet(cacheKey);
+    if (cached) {
+      return cached;
+    }
+
+    const item = this.serviceCatalog.get(id);
+    if (item) {
+      await this.cacheSet(cacheKey, item, 300); // 5 minutes
+    }
+    return item;
   }
 
   async createServiceCatalogItem(insertItem: InsertServiceCatalog): Promise<ServiceCatalog> {
@@ -636,20 +844,29 @@ export class MemStorage implements IStorage {
       updatedAt: new Date(),
     };
     this.serviceCatalog.set(id, item);
+    await this.cacheDel(`serviceCatalog:org:${item.orgId}`); // Invalidate org catalog cache
     return item;
   }
 
   async updateServiceCatalogItem(id: string, updates: Partial<ServiceCatalog>): Promise<ServiceCatalog> {
     const item = this.serviceCatalog.get(id);
     if (!item) throw new Error("Service catalog item not found");
-    
+
     const updatedItem = { ...item, ...updates, updatedAt: new Date() };
     this.serviceCatalog.set(id, updatedItem);
+    await this.cacheDel(`serviceCatalogItem:${id}`); // Invalidate item cache
+    await this.cacheDel(`serviceCatalog:org:${item.orgId}`); // Invalidate org catalog cache
     return updatedItem;
   }
 
   // Knowledge Base methods
   async getKnowledgeArticles(orgId: string, status?: string): Promise<KnowledgeArticle[]> {
+    const cacheKey = `knowledgeArticles:org:${orgId}:${status || 'all'}`;
+    const cached = await this.cacheGet(cacheKey);
+    if (cached) {
+      return cached;
+    }
+
     let articles = Array.from(this.knowledgeArticles.values())
       .filter(article => article.orgId === orgId);
 
@@ -657,15 +874,37 @@ export class MemStorage implements IStorage {
       articles = articles.filter(article => article.status === status);
     }
 
-    return articles.sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime());
+    const sortedArticles = articles.sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime());
+    await this.cacheSet(cacheKey, sortedArticles, 300); // 5 minutes
+    return sortedArticles;
   }
 
   async getKnowledgeArticle(id: string): Promise<KnowledgeArticle | undefined> {
-    return this.knowledgeArticles.get(id);
+    const cacheKey = `knowledgeArticle:${id}`;
+    const cached = await this.cacheGet(cacheKey);
+    if (cached) {
+      return cached;
+    }
+
+    const article = this.knowledgeArticles.get(id);
+    if (article) {
+      await this.cacheSet(cacheKey, article, 300); // 5 minutes
+    }
+    return article;
   }
 
   async getKnowledgeArticleBySlug(slug: string): Promise<KnowledgeArticle | undefined> {
-    return Array.from(this.knowledgeArticles.values()).find(article => article.slug === slug);
+    const cacheKey = `knowledgeArticle:slug:${slug}`;
+    const cached = await this.cacheGet(cacheKey);
+    if (cached) {
+      return cached;
+    }
+
+    const article = Array.from(this.knowledgeArticles.values()).find(article => article.slug === slug);
+    if (article) {
+      await this.cacheSet(cacheKey, article, 300); // 5 minutes
+    }
+    return article;
   }
 
   async createKnowledgeArticle(insertArticle: InsertKnowledgeArticle): Promise<KnowledgeArticle> {
@@ -677,26 +916,51 @@ export class MemStorage implements IStorage {
       updatedAt: new Date(),
     };
     this.knowledgeArticles.set(id, article);
+    await this.cacheDel(`knowledgeArticles:org:${article.orgId}`); // Invalidate org knowledge articles cache
     return article;
   }
 
   async updateKnowledgeArticle(id: string, updates: Partial<KnowledgeArticle>): Promise<KnowledgeArticle> {
     const article = this.knowledgeArticles.get(id);
     if (!article) throw new Error("Knowledge article not found");
-    
+
     const updatedArticle = { ...article, ...updates, updatedAt: new Date() };
     this.knowledgeArticles.set(id, updatedArticle);
+    await this.cacheDel(`knowledgeArticle:${id}`); // Invalidate article cache
+    await this.cacheDel(`knowledgeArticles:org:${article.orgId}`); // Invalidate org articles cache
+    if (article.slug) {
+      await this.cacheDel(`knowledgeArticle:slug:${article.slug}`); // Invalidate slug cache
+    }
     return updatedArticle;
   }
 
   // Automation Rules methods
   async getAutomationRules(orgId: string): Promise<AutomationRule[]> {
-    return Array.from(this.automationRules.values())
+    const cacheKey = `automationRules:org:${orgId}`;
+    const cached = await this.cacheGet(cacheKey);
+    if (cached) {
+      return cached;
+    }
+
+    const rules = Array.from(this.automationRules.values())
       .filter(rule => rule.orgId === orgId);
+
+    await this.cacheSet(cacheKey, rules, 300); // 5 minutes
+    return rules;
   }
 
   async getAutomationRule(id: string): Promise<AutomationRule | undefined> {
-    return this.automationRules.get(id);
+    const cacheKey = `automationRule:${id}`;
+    const cached = await this.cacheGet(cacheKey);
+    if (cached) {
+      return cached;
+    }
+
+    const rule = this.automationRules.get(id);
+    if (rule) {
+      await this.cacheSet(cacheKey, rule, 300); // 5 minutes
+    }
+    return rule;
   }
 
   async createAutomationRule(insertRule: InsertAutomationRule): Promise<AutomationRule> {
@@ -708,26 +972,48 @@ export class MemStorage implements IStorage {
       updatedAt: new Date(),
     };
     this.automationRules.set(id, rule);
+    await this.cacheDel(`automationRules:org:${rule.orgId}`); // Invalidate org rules cache
     return rule;
   }
 
   async updateAutomationRule(id: string, updates: Partial<AutomationRule>): Promise<AutomationRule> {
     const rule = this.automationRules.get(id);
     if (!rule) throw new Error("Automation rule not found");
-    
+
     const updatedRule = { ...rule, ...updates, updatedAt: new Date() };
     this.automationRules.set(id, updatedRule);
+    await this.cacheDel(`automationRule:${id}`); // Invalidate rule cache
+    await this.cacheDel(`automationRules:org:${rule.orgId}`); // Invalidate org rules cache
     return updatedRule;
   }
 
   // SLA methods
   async getSLAs(orgId: string): Promise<SLA[]> {
-    return Array.from(this.slas.values())
+    const cacheKey = `slas:org:${orgId}`;
+    const cached = await this.cacheGet(cacheKey);
+    if (cached) {
+      return cached;
+    }
+
+    const slas = Array.from(this.slas.values())
       .filter(sla => sla.orgId === orgId && sla.isActive);
+
+    await this.cacheSet(cacheKey, slas, 300); // 5 minutes
+    return slas;
   }
 
   async getSLA(id: string): Promise<SLA | undefined> {
-    return this.slas.get(id);
+    const cacheKey = `sla:${id}`;
+    const cached = await this.cacheGet(cacheKey);
+    if (cached) {
+      return cached;
+    }
+
+    const sla = this.slas.get(id);
+    if (sla) {
+      await this.cacheSet(cacheKey, sla, 300); // 5 minutes
+    }
+    return sla;
   }
 
   async createSLA(insertSLA: InsertSLA): Promise<SLA> {
@@ -738,15 +1024,18 @@ export class MemStorage implements IStorage {
       createdAt: new Date(),
     };
     this.slas.set(id, sla);
+    await this.cacheDel(`slas:org:${sla.orgId}`); // Invalidate org SLAs cache
     return sla;
   }
 
   async updateSLA(id: string, updates: Partial<SLA>): Promise<SLA> {
     const sla = this.slas.get(id);
     if (!sla) throw new Error("SLA not found");
-    
+
     const updatedSLA = { ...sla, ...updates };
     this.slas.set(id, updatedSLA);
+    await this.cacheDel(`sla:${id}`); // Invalidate SLA cache
+    await this.cacheDel(`slas:org:${sla.orgId}`); // Invalidate org SLAs cache
     return updatedSLA;
   }
 
@@ -758,8 +1047,8 @@ export class MemStorage implements IStorage {
     avgCSAT: number;
   }> {
     const tickets = Array.from(this.tickets.values()).filter(ticket => ticket.orgId === orgId);
-    
-    const openTickets = tickets.filter(ticket => 
+
+    const openTickets = tickets.filter(ticket =>
       !['RESOLVED', 'CLOSED', 'CANCELED'].includes(ticket.status)
     ).length;
 
@@ -772,7 +1061,7 @@ export class MemStorage implements IStorage {
 
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    const resolvedToday = tickets.filter(ticket => 
+    const resolvedToday = tickets.filter(ticket =>
       ticket.resolvedAt && ticket.resolvedAt >= today
     ).length;
 
@@ -797,10 +1086,19 @@ export class MemStorage implements IStorage {
   }
 
   async getRecentTickets(orgId: string, limit: number = 10): Promise<Ticket[]> {
-    return Array.from(this.tickets.values())
+    const cacheKey = `recentTickets:org:${orgId}:limit:${limit}`;
+    const cached = await this.cacheGet(cacheKey);
+    if (cached) {
+      return cached;
+    }
+
+    const tickets = Array.from(this.tickets.values())
       .filter(ticket => ticket.orgId === orgId)
       .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
       .slice(0, limit);
+
+    await this.cacheSet(cacheKey, tickets, 300); // 5 minutes
+    return tickets;
   }
 }
 

@@ -97,6 +97,7 @@ class AuthService {
       const response = await fetch('/api/me', {
         headers: {
           'Authorization': `Bearer ${this.token}`,
+          'Content-Type': 'application/json',
         },
       });
 
@@ -104,9 +105,14 @@ class AuthService {
         this.user = await response.json();
         this.saveToStorage();
         return this.user;
+      } else if (response.status === 401 || response.status === 403) {
+        // Token is invalid, logout
+        this.logout();
+        throw new Error('Authentication failed');
       }
     } catch (error) {
       console.error('Failed to fetch user data:', error);
+      throw error;
     }
 
     return this.user;

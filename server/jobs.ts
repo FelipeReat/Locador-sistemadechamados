@@ -1,263 +1,256 @@
+
+import { Queue, Worker, Job } from 'bullmq';
+import { redis } from './redis';
 import { storage } from './storage';
 import { sendEmail } from './email';
 
-interface Job {
-  id: string;
-  type: string;
-  data: any;
-  scheduledFor: Date;
-  completed: boolean;
+// Job queues
+export const notificationQueue = new Queue('notifications', { 
+  connection: redis,
+  defaultJobOptions: {
+    removeOnComplete: 100,
+    removeOnFail: 50,
+  }
+});
+
+export const slaQueue = new Queue('sla-monitoring', { 
+  connection: redis,
+  defaultJobOptions: {
+    removeOnComplete: 100,
+    removeOnFail: 50,
+  }
+});
+
+export const automationQueue = new Queue('automations', { 
+  connection: redis,
+  defaultJobOptions: {
+    removeOnComplete: 100,
+    removeOnFail: 50,
+  }
+});
+
+// Job types
+export interface NotificationJobData {
+  type: 'TICKET_CREATED' | 'TICKET_UPDATED' | 'TICKET_ASSIGNED' | 'SLA_BREACH' | 'APPROVAL_REQUESTED' | 'CSAT_REQUEST';
+  ticketId: string;
+  userIds?: string[];
+  message: string;
+  templateKey?: string;
+  metadata?: Record<string, any>;
 }
 
-class JobQueue {
-  private jobs: Map<string, Job> = new Map();
-  private intervalId: NodeJS.Timeout | null = null;
+export interface SLAJobData {
+  ticketId: string;
+  type: 'CHECK_FIRST_RESPONSE' | 'CHECK_RESOLUTION';
+  dueAt: Date;
+}
 
-  start() {
-    if (this.intervalId) return;
-    
-    console.log('Starting job queue...');
-    this.intervalId = setInterval(() => {
-      this.processJobs();
-    }, 30000); // Process jobs every 30 seconds
-  }
+export interface AutomationJobData {
+  ruleId: string;
+  ticketId: string;
+  trigger: string;
+  context: Record<string, any>;
+}
 
-  stop() {
-    if (this.intervalId) {
-      clearInterval(this.intervalId);
-      this.intervalId = null;
-    }
-  }
-
-  addJob(type: string, data: any, scheduledFor: Date = new Date()) {
-    const job: Job = {
-      id: `job-${Date.now()}-${Math.random()}`,
-      type,
-      data,
-      scheduledFor,
-      completed: false,
-    };
-
-    this.jobs.set(job.id, job);
-    console.log(`Job ${job.id} scheduled for ${scheduledFor}`);
-    return job.id;
-  }
-
-  private async processJobs() {
-    const now = new Date();
-    const pendingJobs = Array.from(this.jobs.values())
-      .filter(job => !job.completed && job.scheduledFor <= now);
-
-    for (const job of pendingJobs) {
-      try {
-        await this.executeJob(job);
-        job.completed = true;
-        console.log(`Job ${job.id} completed successfully`);
-      } catch (error) {
-        console.error(`Job ${job.id} failed:`, error);
-        // For now, mark as completed to avoid infinite retries
-        job.completed = true;
-      }
-    }
-
-    // Clean up completed jobs older than 1 hour
-    const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
-    Array.from(this.jobs.values())
-      .filter(job => job.completed && job.scheduledFor < oneHourAgo)
-      .forEach(job => this.jobs.delete(job.id));
-  }
-
-  private async executeJob(job: Job) {
-    switch (job.type) {
-      case 'CHECK_SLA_BREACH':
-        await this.checkSLABreach(job.data);
-        break;
-      case 'SEND_NOTIFICATION':
-        await this.sendNotification(job.data);
-        break;
-      case 'AUTO_ESCALATE':
-        await this.autoEscalate(job.data);
-        break;
-      case 'SEND_CSAT_SURVEY':
-        await this.sendCSATSurvey(job.data);
-        break;
-      default:
-        console.warn(`Unknown job type: ${job.type}`);
-    }
-  }
-
-  private async checkSLABreach(data: { ticketId: string }) {
-    const ticket = await storage.getTicket(data.ticketId);
-    if (!ticket || ticket.status === 'RESOLVED' || ticket.status === 'CLOSED') {
+// Workers
+const notificationWorker = new Worker('notifications', async (job: Job<NotificationJobData>) => {
+  const { type, ticketId, userIds, message, templateKey } = job.data;
+  
+  try {
+    const ticket = await storage.getTicket(ticketId);
+    if (!ticket) {
+      console.error(`Ticket not found: ${ticketId}`);
       return;
     }
 
-    if (ticket.dueAt && new Date() > ticket.dueAt) {
-      console.log(`SLA breach detected for ticket ${ticket.code}`);
-      
-      // Send notification about SLA breach
-      this.addJob('SEND_NOTIFICATION', {
-        type: 'SLA_BREACH',
-        ticketId: ticket.id,
-        message: `SLA breach detected for ticket ${ticket.code}`,
-      });
-
-      // Auto-escalate if configured
-      this.addJob('AUTO_ESCALATE', {
-        ticketId: ticket.id,
-        reason: 'SLA_BREACH',
-      });
-    }
-  }
-
-  private async sendNotification(data: {
-    type: string;
-    ticketId: string;
-    message: string;
-    userIds?: string[];
-  }) {
-    const ticket = await storage.getTicket(data.ticketId);
-    if (!ticket) return;
-
-    let recipients: string[] = [];
-
-    if (data.userIds) {
-      recipients = data.userIds;
-    } else {
-      // Default recipients based on notification type
-      switch (data.type) {
+    let recipients = userIds || [];
+    
+    // Determine recipients based on notification type
+    if (!recipients.length) {
+      switch (type) {
         case 'TICKET_CREATED':
-          if (ticket.assigneeId) recipients.push(ticket.assigneeId);
+          // Notify team members
+          if (ticket.teamId) {
+            const memberships = await storage.getTeamMemberships(ticket.teamId);
+            recipients = memberships.map(m => m.userId);
+          }
           break;
         case 'TICKET_ASSIGNED':
-          if (ticket.assigneeId) recipients.push(ticket.assigneeId);
+          // Notify assignee
+          if (ticket.assigneeId) {
+            recipients = [ticket.assigneeId];
+          }
           break;
         case 'SLA_BREACH':
-          // Send to team managers and admins
-          const memberships = await storage.getTeamMemberships(ticket.teamId || '');
-          recipients = memberships
-            .filter(m => m.roles.includes('ADMIN') || m.roles.includes('AGENT'))
-            .map(m => m.userId);
+          // Notify team lead and assignee
+          if (ticket.assigneeId) {
+            recipients = [ticket.assigneeId];
+          }
           break;
       }
     }
 
+    // Send notifications
     for (const userId of recipients) {
       const user = await storage.getUser(userId);
       if (user && user.isActive) {
-        try {
-          await sendEmail({
-            to: user.email,
-            subject: `[ServiceDesk] ${data.message}`,
-            html: `
-              <h2>Notificação do ServiceDesk</h2>
-              <p><strong>Chamado:</strong> ${ticket.code} - ${ticket.subject}</p>
-              <p><strong>Prioridade:</strong> ${ticket.priority}</p>
-              <p><strong>Status:</strong> ${ticket.status}</p>
-              <p><strong>Mensagem:</strong> ${data.message}</p>
-              <hr>
-              <p>Esta é uma notificação automática do sistema ServiceDesk.</p>
-            `,
-          });
-        } catch (error) {
-          console.error(`Failed to send email to ${user.email}:`, error);
-        }
+        await sendEmail({
+          to: user.email,
+          subject: `[ServiceDesk] ${ticket.code} - ${message}`,
+          html: generateNotificationEmail(type, ticket, message),
+        });
       }
     }
-  }
 
-  private async autoEscalate(data: { ticketId: string; reason: string }) {
-    const ticket = await storage.getTicket(data.ticketId);
+    console.log(`Notification sent for ticket ${ticket.code}: ${message}`);
+  } catch (error) {
+    console.error('Failed to process notification job:', error);
+    throw error;
+  }
+}, { connection: redis });
+
+const slaWorker = new Worker('sla-monitoring', async (job: Job<SLAJobData>) => {
+  const { ticketId, type, dueAt } = job.data;
+  
+  try {
+    const ticket = await storage.getTicket(ticketId);
     if (!ticket) return;
 
-    // Find the next level team (simplified logic)
-    const teams = await storage.getTeamsByOrg(ticket.orgId);
-    const currentTeam = teams.find(t => t.id === ticket.teamId);
+    // Check if ticket is still in breach
+    const now = new Date();
+    if (now < dueAt) return; // Not yet due
+
+    // Check current status
+    if (['RESOLVED', 'CLOSED', 'CANCELED'].includes(ticket.status)) {
+      return; // Ticket already resolved
+    }
+
+    // Create SLA breach notification
+    await notificationQueue.add('sla-breach', {
+      type: 'SLA_BREACH',
+      ticketId,
+      message: `SLA breach detected for ${type.toLowerCase().replace('_', ' ')}`,
+    });
+
+    // Update ticket with SLA breach flag
+    await storage.updateTicket(ticketId, {
+      // Add SLA breach metadata
+      metadata: {
+        ...ticket.metadata,
+        slaBreach: true,
+        slaBreachType: type,
+        slaBreachAt: now,
+      }
+    });
+
+  } catch (error) {
+    console.error('Failed to process SLA job:', error);
+    throw error;
+  }
+}, { connection: redis });
+
+const automationWorker = new Worker('automations', async (job: Job<AutomationJobData>) => {
+  const { ruleId, ticketId, trigger, context } = job.data;
+  
+  try {
+    const rule = await storage.getAutomationRule(ruleId);
+    const ticket = await storage.getTicket(ticketId);
     
-    if (currentTeam?.name.includes('N1')) {
-      // Escalate to N2
-      const n2Team = teams.find(t => t.name.includes('N2'));
-      if (n2Team) {
-        await storage.updateTicket(ticket.id, {
-          teamId: n2Team.id,
-          assigneeId: null, // Unassign to let team pick up
-        });
+    if (!rule || !rule.isActive || !ticket) return;
 
-        console.log(`Ticket ${ticket.code} escalated from ${currentTeam.name} to ${n2Team.name}`);
-
-        // Send notification about escalation
-        this.addJob('SEND_NOTIFICATION', {
-          type: 'TICKET_ESCALATED',
-          ticketId: ticket.id,
-          message: `Ticket escalated to ${n2Team.name} due to ${data.reason}`,
-        });
+    // Process automation actions
+    for (const action of rule.actions) {
+      switch (action.type) {
+        case 'ASSIGN_TEAM':
+          await storage.updateTicket(ticketId, { teamId: action.value });
+          break;
+        case 'ASSIGN_USER':
+          await storage.updateTicket(ticketId, { assigneeId: action.value });
+          break;
+        case 'SET_PRIORITY':
+          await storage.updateTicket(ticketId, { priority: action.value });
+          break;
+        case 'ADD_COMMENT':
+          await storage.createTicketComment({
+            ticketId,
+            authorId: 'system',
+            visibility: 'INTERNAL',
+            body: action.value,
+          });
+          break;
+        case 'SEND_NOTIFICATION':
+          await notificationQueue.add('automation-notification', {
+            type: 'TICKET_UPDATED',
+            ticketId,
+            message: action.value || 'Ticket updated by automation rule',
+          });
+          break;
       }
     }
+
+    console.log(`Automation rule ${rule.name} executed for ticket ${ticket.code}`);
+  } catch (error) {
+    console.error('Failed to process automation job:', error);
+    throw error;
   }
+}, { connection: redis });
 
-  private async sendCSATSurvey(data: { ticketId: string }) {
-    const ticket = await storage.getTicket(data.ticketId);
-    if (!ticket || ticket.status !== 'RESOLVED') return;
-
-    const requester = await storage.getUser(ticket.requesterId);
-    if (!requester) return;
-
-    try {
-      await sendEmail({
-        to: requester.email,
-        subject: `[ServiceDesk] Avalie nosso atendimento - ${ticket.code}`,
-        html: `
-          <h2>Como foi nosso atendimento?</h2>
-          <p>Olá ${requester.name},</p>
-          <p>Seu chamado <strong>${ticket.code} - ${ticket.subject}</strong> foi resolvido.</p>
-          <p>Por favor, avalie nosso atendimento:</p>
-          <div style="text-align: center; margin: 20px 0;">
-            <a href="#" style="display: inline-block; margin: 5px; padding: 10px 15px; background: #ef4444; color: white; text-decoration: none; border-radius: 5px;">😞 Muito Ruim</a>
-            <a href="#" style="display: inline-block; margin: 5px; padding: 10px 15px; background: #f97316; color: white; text-decoration: none; border-radius: 5px;">😐 Ruim</a>
-            <a href="#" style="display: inline-block; margin: 5px; padding: 10px 15px; background: #eab308; color: white; text-decoration: none; border-radius: 5px;">😊 Regular</a>
-            <a href="#" style="display: inline-block; margin: 5px; padding: 10px 15px; background: #22c55e; color: white; text-decoration: none; border-radius: 5px;">😄 Bom</a>
-            <a href="#" style="display: inline-block; margin: 5px; padding: 10px 15px; background: #16a34a; color: white; text-decoration: none; border-radius: 5px;">😍 Excelente</a>
-          </div>
-          <p>Obrigado por usar nossos serviços!</p>
-        `,
-      });
-    } catch (error) {
-      console.error(`Failed to send CSAT survey to ${requester.email}:`, error);
-    }
-  }
+// Helper functions
+function generateNotificationEmail(type: string, ticket: any, message: string): string {
+  return `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+      <h2 style="color: #2563eb;">ServiceDesk - Notificação</h2>
+      <div style="background-color: #f8fafc; padding: 16px; border-radius: 8px; margin: 16px 0;">
+        <p><strong>Chamado:</strong> ${ticket.code}</p>
+        <p><strong>Assunto:</strong> ${ticket.subject}</p>
+        <p><strong>Status:</strong> ${ticket.status}</p>
+        <p><strong>Prioridade:</strong> ${ticket.priority}</p>
+      </div>
+      <p><strong>Mensagem:</strong> ${message}</p>
+      <hr style="margin: 24px 0;">
+      <p style="color: #64748b; font-size: 14px;">
+        Esta é uma notificação automática do sistema ServiceDesk.
+      </p>
+    </div>
+  `;
 }
 
-export const jobQueue = new JobQueue();
-
-// Schedule periodic SLA checks for all active tickets
+// Schedule SLA checks for existing tickets
 export async function scheduleSLAChecks() {
   try {
-    // This is a simplified approach - in production you'd want more efficient querying
-    const orgs = ['org-1']; // Get from storage in real implementation
-    
-    for (const orgId of orgs) {
-      const tickets = await storage.getTickets({
-        orgId,
-        status: 'IN_PROGRESS',
-      });
+    const openTickets = await storage.getTickets({
+      status: ['NEW', 'IN_PROGRESS', 'WAITING_CUSTOMER', 'WAITING_APPROVAL'],
+      limit: 1000,
+    });
 
-      for (const ticket of tickets) {
-        if (ticket.dueAt) {
-          // Check SLA 1 hour before breach
-          const checkTime = new Date(ticket.dueAt.getTime() - 60 * 60 * 1000);
-          if (checkTime > new Date()) {
-            jobQueue.addJob('CHECK_SLA_BREACH', { ticketId: ticket.id }, checkTime);
-          }
-
-          // Also check at breach time
-          jobQueue.addJob('CHECK_SLA_BREACH', { ticketId: ticket.id }, ticket.dueAt);
-        }
+    for (const ticket of openTickets) {
+      if (ticket.dueAt && ticket.dueAt > new Date()) {
+        // Schedule SLA check
+        const delay = ticket.dueAt.getTime() - Date.now();
+        await slaQueue.add(
+          'sla-check',
+          {
+            ticketId: ticket.id,
+            type: 'CHECK_RESOLUTION',
+            dueAt: ticket.dueAt,
+          },
+          { delay }
+        );
       }
     }
+
+    console.log(`Scheduled SLA checks for ${openTickets.length} tickets`);
   } catch (error) {
-    console.error('Error scheduling SLA checks:', error);
+    console.error('Failed to schedule SLA checks:', error);
   }
 }
 
-// Auto-start the job queue
-jobQueue.start();
+// Export queues for external use
+export { notificationQueue as jobQueue };
+
+// Graceful shutdown
+process.on('SIGTERM', async () => {
+  await notificationWorker.close();
+  await slaWorker.close();
+  await automationWorker.close();
+});

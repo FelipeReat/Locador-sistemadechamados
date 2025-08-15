@@ -121,7 +121,7 @@ export default function Sidebar() {
           <div className="space-y-1">
             {navigation.map((item) => {
               if (!canAccess(item.requiredRoles)) return null;
-              
+
               return (
                 <Link key={item.name} href={item.href}>
                   <div

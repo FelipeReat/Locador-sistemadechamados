@@ -15,19 +15,23 @@ import {
   ArrowRightIcon
 } from "lucide-react";
 import { Link } from "wouter";
+import { useAuthenticatedQuery } from "@/hooks/use-api";
 
 export default function Dashboard() {
-  const { data: metrics, isLoading: metricsLoading } = useQuery({
-    queryKey: ["/api/dashboard/metrics"],
-  });
+  const { data: metrics, isLoading: metricsLoading } = useAuthenticatedQuery(
+    'dashboard-metrics',
+    '/dashboard/metrics'
+  );
 
-  const { data: ticketsByStatus } = useQuery({
-    queryKey: ["/api/dashboard/tickets-by-status"],
-  });
+  const { data: ticketsByStatus, isLoading: statusLoading } = useAuthenticatedQuery(
+    'dashboard-tickets-by-status',
+    '/dashboard/tickets-by-status'
+  );
 
-  const { data: recentTickets } = useQuery({
-    queryKey: ["/api/dashboard/recent-tickets"],
-  });
+  const { data: recentTickets, isLoading: ticketsLoading } = useAuthenticatedQuery(
+    'dashboard-recent-tickets',
+    '/dashboard/recent-tickets'
+  );
 
   const statusData = ticketsByStatus?.reduce((acc: Record<string, number>, item: { status: string; count: number }) => {
     acc[item.status] = item.count;
@@ -60,7 +64,7 @@ export default function Dashboard() {
           iconColor="text-blue-600"
           iconBgColor="bg-blue-100 dark:bg-blue-900"
         />
-        
+
         <MetricCard
           title="SLA em Risco"
           value={metricsLoading ? "..." : metrics?.slaAtRisk?.toString() || "0"}
@@ -70,7 +74,7 @@ export default function Dashboard() {
           iconColor="text-orange-600"
           iconBgColor="bg-orange-100 dark:bg-orange-900"
         />
-        
+
         <MetricCard
           title="Resolvidos Hoje"
           value={metricsLoading ? "..." : metrics?.resolvedToday?.toString() || "0"}
@@ -80,7 +84,7 @@ export default function Dashboard() {
           iconColor="text-green-600"
           iconBgColor="bg-green-100 dark:bg-green-900"
         />
-        
+
         <MetricCard
           title="CSAT Médio"
           value={metricsLoading ? "..." : metrics?.avgCSAT?.toFixed(1) || "0.0"}

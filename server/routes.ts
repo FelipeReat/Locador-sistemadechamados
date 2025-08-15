@@ -74,7 +74,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Check if team exists
       const teams = await storage.getTeamsByOrg(org.id);
       let team = teams.find(t => t.name === "Suporte Geral");
-      
+
       if (!team) {
         // Create default team
         team = await storage.createTeam({
@@ -103,9 +103,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     } catch (error) {
       console.error("Seed admin error:", error);
-      res.status(500).json({ 
-        message: "Internal server error", 
-        error: error.message 
+      res.status(500).json({
+        message: "Internal server error",
+        error: error.message
       });
     }
   });
@@ -114,7 +114,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/auth/register", async (req, res) => {
     try {
       const data = registerSchema.parse(req.body);
-      
+
       // Check if user already exists
       const existingUser = await storage.getUserByEmail(data.email);
       if (existingUser) {
@@ -165,7 +165,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       const token = generateToken(user.id);
-      
+
       res.json({
         token,
         user: {
@@ -187,7 +187,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/auth/login", async (req, res) => {
     try {
       const data = loginSchema.parse(req.body);
-      
+
       const user = await storage.getUserByEmail(data.email);
       if (!user || !user.isActive) {
         return res.status(401).json({ message: "Invalid credentials" });
@@ -202,7 +202,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       await storage.updateUser(user.id, { lastLoginAt: new Date() });
 
       const token = generateToken(user.id);
-      
+
       res.json({
         token,
         user: {
@@ -223,7 +223,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Seed admin route (unprotected)
   app.use("/api/seed-admin", (req, res, next) => next());
-  
+
   // Protected routes
   app.use("/api", authenticateToken);
 
@@ -274,7 +274,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const limit = parseInt(req.query.limit as string) || 10;
       const tickets = await storage.getRecentTickets(req.user!.orgId, limit);
-      
+
       // Enrich with user data
       const enrichedTickets = await Promise.all(
         tickets.map(async (ticket) => {
@@ -311,7 +311,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       };
 
       const tickets = await storage.getTickets(filters);
-      
+
       // Enrich with user data
       const enrichedTickets = await Promise.all(
         tickets.map(async (ticket) => {
@@ -429,11 +429,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const updates = req.body;
-      
+
       // Handle status changes
       if (updates.status === 'RESOLVED' && ticket.status !== 'RESOLVED') {
         updates.resolvedAt = new Date();
-        
+
         // Schedule CSAT survey
         const csatDelay = 30 * 60 * 1000; // 30 minutes after resolution
         jobQueue.addJob('SEND_CSAT_SURVEY', { ticketId: ticket.id }, new Date(Date.now() + csatDelay));
@@ -696,6 +696,67 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: "Invalid input", errors: error.errors });
       }
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Reports routes
+  app.get("/api/reports/dashboard", authenticateToken, async (req: AuthenticatedRequest, res) => {
+    try {
+      const { reportService } = await import('./reports');
+
+      const filters = {
+        orgId: req.user!.orgId,
+        from: req.query.from ? new Date(req.query.from as string) : undefined,
+        to: req.query.to ? new Date(req.query.to as string) : undefined,
+        teamIds: req.query.teamIds ? (req.query.teamIds as string).split(',') : undefined,
+        userIds: req.query.userIds ? (req.query.userIds as string).split(',') : undefined,
+        priorities: req.query.priorities ? (req.query.priorities as string).split(',') : undefined,
+      };
+
+      const metrics = await reportService.getDashboardMetrics(filters);
+      res.json(metrics);
+    } catch (error) {
+      console.error("Dashboard report error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.get("/api/reports/sla", authenticateToken, async (req: AuthenticatedRequest, res) => {
+    try {
+      const { reportService } = await import('./reports');
+
+      const filters = {
+        orgId: req.user!.orgId,
+        from: req.query.from ? new Date(req.query.from as string) : undefined,
+        to: req.query.to ? new Date(req.query.to as string) : undefined,
+        teamIds: req.query.teamIds ? (req.query.teamIds as string).split(',') : undefined,
+        priorities: req.query.priorities ? (req.query.priorities as string).split(',') : undefined,
+      };
+
+      const report = await reportService.getSLAReport(filters);
+      res.json(report);
+    } catch (error) {
+      console.error("SLA report error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.get("/api/reports/volume", authenticateToken, async (req: AuthenticatedRequest, res) => {
+    try {
+      const { reportService } = await import('./reports');
+
+      const filters = {
+        orgId: req.user!.orgId,
+        from: req.query.from ? new Date(req.query.from as string) : undefined,
+        to: req.query.to ? new Date(req.query.to as string) : undefined,
+        teamIds: req.query.teamIds ? (req.query.teamIds as string).split(',') : undefined,
+      };
+
+      const report = await reportService.getVolumeReport(filters);
+      res.json(report);
+    } catch (error) {
+      console.error("Volume report error:", error);
       res.status(500).json({ message: "Internal server error" });
     }
   });
