@@ -79,8 +79,16 @@ export default function LoginPage() {
           
           <div className="mt-6 p-4 bg-blue-50 rounded-lg">
             <p className="text-sm text-blue-800 font-medium">Credenciais de teste:</p>
-            <p className="text-sm text-blue-700">Email: admin@servicedesk.com</p>
-            <p className="text-sm text-blue-700">Senha: admin123</p>
+            <div className="mt-2 space-y-1">
+              <div>
+                <p className="text-sm text-blue-700 font-medium">Admin/Suporte:</p>
+                <p className="text-xs text-blue-600">admin@servicedesk.com / admin123</p>
+              </div>
+              <div>
+                <p className="text-sm text-blue-700 font-medium">Agente:</p>
+                <p className="text-xs text-blue-600">agent@servicedesk.com / admin123</p>
+              </div>
+            </div>
           </div>
         </CardContent>
       </Card>

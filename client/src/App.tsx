@@ -6,6 +6,7 @@ import LoginPage from './pages/simple-login';
 import TicketList from './pages/simple-tickets';
 import TicketDetail from './pages/simple-ticket-detail';
 import CreateTicket from './pages/simple-create-ticket';
+import SupportDashboard from './pages/support-dashboard';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -43,9 +44,15 @@ function AppContent() {
           <Route path="/create-ticket">
             {user ? <CreateTicket /> : <Redirect to="/login" />}
           </Route>
+          <Route path="/support">
+            {user?.role === 'AGENT' || user?.role === 'ADMIN' ? <SupportDashboard /> : <Redirect to="/tickets" />}
+          </Route>
           
           <Route path="/">
-            {user ? <Redirect to="/tickets" /> : <Redirect to="/login" />}
+            {user 
+              ? (user.role === 'AGENT' || user.role === 'ADMIN' ? <Redirect to="/support" /> : <Redirect to="/tickets" />)
+              : <Redirect to="/login" />
+            }
           </Route>
         </Switch>
       </Router>

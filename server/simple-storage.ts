@@ -1,6 +1,6 @@
 import { neon } from '@neondatabase/serverless';
 import { drizzle } from 'drizzle-orm/neon-http';
-import { eq, desc, and } from 'drizzle-orm';
+import { eq, desc, and, or } from 'drizzle-orm';
 import { users, tickets, comments, attachments } from '../shared/simple-schema';
 import type { User, Ticket, Comment, Attachment, InsertUser, InsertTicket, InsertComment, InsertAttachment, TicketWithDetails } from '../shared/simple-schema';
 
@@ -22,6 +22,16 @@ export class SimpleStorage {
   async getUserByEmail(email: string): Promise<User | null> {
     const [user] = await db.select().from(users).where(eq(users.email, email));
     return user || null;
+  }
+
+  async getAgents(): Promise<User[]> {
+    const agents = await db.select({
+      id: users.id,
+      name: users.name,
+      email: users.email,
+      role: users.role
+    }).from(users).where(or(eq(users.role, 'AGENT'), eq(users.role, 'ADMIN')));
+    return agents;
   }
 
   async getUsers(): Promise<User[]> {
@@ -122,6 +132,84 @@ export class SimpleStorage {
           requester,
           assignee,
           comments: [],
+          attachments: []
+        };
+      })
+    );
+
+    return ticketsWithDetails;
+  }
+
+  async getAllTickets(): Promise<Ticket[]> {
+    const allTickets = await db.select().from(tickets).orderBy(desc(tickets.createdAt));
+    
+    const ticketsWithDetails = await Promise.all(
+      allTickets.map(async (ticket) => {
+        const [requester] = await db.select().from(users).where(eq(users.id, ticket.requesterId));
+        const assignee = ticket.assigneeId 
+          ? (await db.select().from(users).where(eq(users.id, ticket.assigneeId)))[0]
+          : null;
+        
+        const ticketComments = await db.select({
+          id: comments.id,
+          content: comments.content,
+          createdAt: comments.createdAt,
+          user: {
+            id: users.id,
+            name: users.name,
+            email: users.email
+          }
+        })
+        .from(comments)
+        .leftJoin(users, eq(comments.userId, users.id))
+        .where(eq(comments.ticketId, ticket.id))
+        .orderBy(comments.createdAt);
+
+        return {
+          ...ticket,
+          requester: requester ? { id: requester.id, name: requester.name, email: requester.email } : null,
+          assignee: assignee ? { id: assignee.id, name: assignee.name, email: assignee.email } : null,
+          comments: ticketComments,
+          attachments: []
+        };
+      })
+    );
+
+    return ticketsWithDetails;
+  }
+
+  async getTicketsByUser(userId: string): Promise<Ticket[]> {
+    const userTickets = await db.select().from(tickets)
+      .where(eq(tickets.requesterId, userId))
+      .orderBy(desc(tickets.createdAt));
+    
+    const ticketsWithDetails = await Promise.all(
+      userTickets.map(async (ticket) => {
+        const [requester] = await db.select().from(users).where(eq(users.id, ticket.requesterId));
+        const assignee = ticket.assigneeId 
+          ? (await db.select().from(users).where(eq(users.id, ticket.assigneeId)))[0]
+          : null;
+        
+        const ticketComments = await db.select({
+          id: comments.id,
+          content: comments.content,
+          createdAt: comments.createdAt,
+          user: {
+            id: users.id,
+            name: users.name,
+            email: users.email
+          }
+        })
+        .from(comments)
+        .leftJoin(users, eq(comments.userId, users.id))
+        .where(eq(comments.ticketId, ticket.id))
+        .orderBy(comments.createdAt);
+
+        return {
+          ...ticket,
+          requester: requester ? { id: requester.id, name: requester.name, email: requester.email } : null,
+          assignee: assignee ? { id: assignee.id, name: assignee.name, email: assignee.email } : null,
+          comments: ticketComments,
           attachments: []
         };
       })

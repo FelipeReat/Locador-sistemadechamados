@@ -58,6 +58,15 @@ export default function TicketList() {
               <h1 className="text-2xl font-bold text-gray-900">Service Desk</h1>
             </div>
             <div className="flex items-center gap-4">
+              {(user?.role === 'AGENT' || user?.role === 'ADMIN') && (
+                <Button 
+                  variant="outline" 
+                  onClick={() => navigate('/support')}
+                  data-testid="button-support-dashboard"
+                >
+                  Dashboard Suporte
+                </Button>
+              )}
               <span className="text-sm text-gray-600">
                 Olá, <span className="font-medium">{user?.name}</span>
               </span>

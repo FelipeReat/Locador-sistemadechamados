@@ -86,7 +86,37 @@ router.get('/api/auth/me', requireAuth, async (req: any, res) => {
 // Ticket routes
 router.get('/api/tickets', requireAuth, async (req: any, res) => {
   try {
-    const tickets = await storage.getTickets();
+    const userId = req.user?.id;
+    const userRole = req.user?.role;
+    
+    if (!userId) {
+      return res.status(401).json({ message: 'Unauthorized' });
+    }
+
+    // Usuários convencionais só veem seus próprios chamados
+    if (userRole === 'USER') {
+      const tickets = await storage.getTicketsByUser(userId);
+      return res.json(tickets);
+    }
+
+    // Agentes e admins veem todos os chamados
+    const tickets = await storage.getAllTickets();
+    res.json(tickets);
+  } catch (error: any) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// Route específica para suporte ver todos os chamados
+router.get('/api/tickets/all', requireAuth, async (req: any, res) => {
+  try {
+    const userRole = req.user?.role;
+    
+    if (userRole !== 'AGENT' && userRole !== 'ADMIN') {
+      return res.status(403).json({ message: 'Access denied' });
+    }
+
+    const tickets = await storage.getAllTickets();
     res.json(tickets);
   } catch (error: any) {
     res.status(500).json({ message: error.message });
