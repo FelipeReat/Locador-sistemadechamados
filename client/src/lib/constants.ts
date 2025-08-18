@@ -82,7 +82,7 @@ export const formatDateTime = (date: Date): string => {
 export const getPriorityIcon = (priority: keyof typeof PRIORITY_LABELS): string => {
   switch (priority) {
     case 'P1': return '🔴';
-    case 'P2': return '🟠';
+    case 'P2': return '🔴';
     case 'P3': return '🟣';
     case 'P4': return '⚪';
     case 'P5': return '⚫';
