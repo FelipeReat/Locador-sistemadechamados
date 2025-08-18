@@ -13,7 +13,7 @@ import { ArrowLeft, Send, User, Clock, MessageSquare } from 'lucide-react';
 const priorityColors = {
   LOW: 'bg-green-100 text-green-800',
   MEDIUM: 'bg-sky-100 text-sky-800',
-  HIGH: 'bg-orange-100 text-orange-800',
+  HIGH: 'bg-red-100 text-red-800',
   URGENT: 'bg-red-100 text-red-800',
 };
 

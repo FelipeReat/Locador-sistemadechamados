@@ -14,7 +14,7 @@ export function RecentTickets() {
   const getPriorityColor = (priority: string) => {
     switch (priority) {
       case 'URGENT': return 'bg-rose-100 text-rose-700 border-rose-200';
-      case 'HIGH': return 'bg-orange-100 text-orange-700 border-orange-200';
+      case 'HIGH': return 'bg-red-100 text-red-700 border-red-200';
       case 'MEDIUM': return 'bg-sky-100 text-sky-700 border-sky-200';
       case 'LOW': return 'bg-emerald-100 text-emerald-700 border-emerald-200';
       default: return 'bg-gray-100 text-gray-700 border-gray-200';

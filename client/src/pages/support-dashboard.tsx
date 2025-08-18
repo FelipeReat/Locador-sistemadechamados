@@ -10,7 +10,7 @@ import { Home, Ticket, Clock, CheckCircle, User, BarChart3, Settings, FileText, 
 const priorityColors = {
   LOW: 'bg-emerald-50 text-emerald-700 border-emerald-200',
   MEDIUM: 'bg-sky-50 text-sky-700 border-sky-200',
-  HIGH: 'bg-orange-50 text-orange-700 border-orange-200',
+  HIGH: 'bg-red-50 text-red-700 border-red-200',
   URGENT: 'bg-rose-50 text-rose-700 border-rose-200',
 };
 

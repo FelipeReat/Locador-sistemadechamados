@@ -20,7 +20,7 @@ interface CSATSurvey {
 
 const scoreLabels = {
   1: { label: "Muito Insatisfeito", icon: Frown, color: "text-rose-500" },
-  2: { label: "Insatisfeito", icon: Frown, color: "text-orange-500" },
+  2: { label: "Insatisfeito", icon: Frown, color: "text-red-500" },
   3: { label: "Neutro", icon: Meh, color: "text-slate-500" },
   4: { label: "Satisfeito", icon: Smile, color: "text-emerald-500" },
   5: { label: "Muito Satisfeito", icon: Smile, color: "text-emerald-600" },

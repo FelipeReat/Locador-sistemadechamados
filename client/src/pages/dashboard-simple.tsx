@@ -57,8 +57,8 @@ export default function Dashboard() {
         <Card className="bg-white dark:bg-gray-800 shadow-sm hover:shadow-md transition-shadow">
           <CardContent className="flex items-center p-6">
             <div className="flex items-center space-x-4">
-              <div className="bg-orange-100 dark:bg-orange-900 p-3 rounded-lg">
-                <AlertTriangleIcon className="h-6 w-6 text-orange-600 dark:text-orange-300" />
+              <div className="bg-red-100 dark:bg-red-900 p-3 rounded-lg">
+                <AlertTriangleIcon className="h-6 w-6 text-red-600 dark:text-red-300" />
               </div>
               <div>
                 <p className="text-2xl font-bold text-gray-900 dark:text-white">

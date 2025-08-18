@@ -18,7 +18,7 @@ const statusColors = {
   'TRIAGE': 'bg-cyan-100 text-cyan-800 dark:bg-cyan-900 dark:text-cyan-200',
   'IN_PROGRESS': 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
   'WAITING_APPROVAL': 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200',
-  'WAITING_CUSTOMER': 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200',
+  'WAITING_CUSTOMER': 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
   'ON_HOLD': 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200',
   'RESOLVED': 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
   'CLOSED': 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200',
@@ -39,7 +39,7 @@ const statusLabels = {
 
 const priorityColors = {
   'P1': 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200',
-  'P2': 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200',
+  'P2': 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200',
   'P3': 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
   'P4': 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
   'P5': 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200',
@@ -392,7 +392,7 @@ export default function TicketDetail() {
 
           {/* Status Change Dialog */}
           {isChangingStatus && (
-            <Card className="mt-6 border-orange-200 bg-orange-50 dark:bg-orange-900/20">
+            <Card className="mt-6 border-red-200 bg-red-50 dark:bg-red-900/20">
               <CardHeader>
                 <CardTitle className="text-lg">Alterar Status</CardTitle>
               </CardHeader>

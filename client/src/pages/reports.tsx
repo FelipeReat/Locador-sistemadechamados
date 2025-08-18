@@ -366,7 +366,7 @@ export default function ReportsPage() {
                 <CardTitle>Tickets em Risco</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-3xl font-bold text-orange-600">
+                <div className="text-3xl font-bold text-red-600">
                   {dashboardMetrics?.slaBreaches || 0}
                 </div>
                 <p className="text-sm text-gray-600 mt-2">

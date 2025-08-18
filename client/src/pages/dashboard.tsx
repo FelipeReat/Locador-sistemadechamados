@@ -86,7 +86,7 @@ export default function Dashboard() {
             icon={AlertTriangleIcon}
             iconColor="text-rose-600"
             iconBgColor="bg-rose-100"
-            gradient="from-rose-500/10 to-orange-500/10"
+            gradient="from-rose-500/10 to-red-500/10"
           />
 
           <MetricCard
