@@ -33,7 +33,6 @@ import redis from './redis';
 export interface IStorage {
   // Users
   getUser(id: string): Promise<User | undefined>;
-  getUserByEmail(email: string): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   updateUser(id: string, updates: Partial<User>): Promise<User>;
@@ -218,7 +217,6 @@ export class MemStorage implements IStorage {
       id: "user-1",
       orgId: org.id,
       username: "admin", // Added username
-      email: "admin@acme.com",
       name: "Administrador do Sistema",
       password: "$2b$10$tedq4kySn0U6sSGCVMCiFuEeqxD31gEv//fw/AZw2syfxKYmQiRo.", // admin123
       mfaSecret: null,
@@ -234,7 +232,6 @@ export class MemStorage implements IStorage {
       id: "user-2",
       orgId: org.id,
       username: "roberto.silva", // Added username
-      email: "roberto.silva@acme.com",
       name: "Roberto Silva",
       password: "$2b$10$hash",
       mfaSecret: null,
@@ -246,8 +243,29 @@ export class MemStorage implements IStorage {
       updatedAt: new Date(),
     };
 
+    // Conventional user (can only open tickets)
+    const conventionalUser: User = {
+        id: "user-3",
+        orgId: org.id,
+        username: "reporter.user",
+        name: "Usuário Convencional",
+        password: "$2b$10$anotherhash", // password for conventional user
+        mfaSecret: null,
+        locale: "pt-BR",
+        timeZone: "America/Sao_Paulo",
+        isActive: true,
+        lastLoginAt: null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        // Add a property to distinguish this user type if needed, e.g., roles or permissions
+        // For now, we'll rely on the absence of agent/admin roles through memberships
+    };
+
+
     this.users.set(admin.id, admin);
     this.users.set(agent1.id, agent1);
+    this.users.set(conventionalUser.id, conventionalUser);
+
 
     // Create sample memberships
     const adminMembership: Membership = {
@@ -267,6 +285,8 @@ export class MemStorage implements IStorage {
       isActive: true,
       createdAt: new Date(),
     };
+
+    // Conventional user does not have specific team memberships that grant agent/admin roles
 
     this.memberships.set(adminMembership.id, adminMembership);
     this.memberships.set(agentMembership.id, agentMembership);
@@ -422,7 +442,7 @@ export class MemStorage implements IStorage {
         id: "ticket-2",
         orgId: org.id,
         code: "SD-2024-0002",
-        requesterId: admin.id,
+        requesterId: admin.id, // Using admin as requester for this sample ticket
         assigneeId: null,
         teamId: team1.id,
         catalogId: "cat-2",
@@ -435,6 +455,25 @@ export class MemStorage implements IStorage {
         resolvedAt: null,
         closedAt: null,
         createdAt: new Date(Date.now() - 1 * 60 * 60 * 1000), // 1 hour ago
+        updatedAt: new Date(),
+      },
+       {
+        id: "ticket-3",
+        orgId: org.id,
+        code: "SD-2024-0003",
+        requesterId: conventionalUser.id, // Conventional user creating a ticket
+        assigneeId: null,
+        teamId: team1.id, // Assign to a default team if no specific assignment logic
+        catalogId: "cat-3",
+        priority: "P3",
+        status: "NEW",
+        subject: "Problema com software",
+        description: "O software X está apresentando erro ao salvar arquivos.",
+        customFieldsJson: { software_name: "Software X", business_need: "Preciso salvar relatórios" },
+        dueAt: new Date(Date.now() + 48 * 60 * 60 * 1000), // 48 hours from now
+        resolvedAt: null,
+        closedAt: null,
+        createdAt: new Date(),
         updatedAt: new Date(),
       },
     ];
@@ -472,25 +511,7 @@ export class MemStorage implements IStorage {
     return user;
   }
 
-  async getUserByEmail(email: string): Promise<User | undefined> {
-    const cacheKey = `user:email:${email}`;
-
-    // Try cache first
-    const cached = await this.cacheGet(cacheKey);
-    if (cached) {
-      return cached;
-    }
-
-    const user = Array.from(this.users.values()).find(user => user.email === email);
-
-    // Cache the result
-    if (user) {
-      await this.cacheSet(cacheKey, user, 300); // 5 minutes
-    }
-
-    return user;
-  }
-
+  // Modified to only use username for login, email is removed
   async getUserByUsername(username: string): Promise<User | undefined> {
     const cacheKey = `user:username:${username}`;
 
@@ -535,9 +556,6 @@ export class MemStorage implements IStorage {
     const updatedUser = { ...user, ...updates, updatedAt: new Date() };
     this.users.set(id, updatedUser);
     await this.cacheDel(`user:${id}`); // Clear specific user cache
-    if (user.email) {
-      await this.cacheDel(`user:email:${user.email}`); // Clear email cache
-    }
     if (user.username) {
       await this.cacheDel(`user:username:${user.username}`); // Clear username cache
     }

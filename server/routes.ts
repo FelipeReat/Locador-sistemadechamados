@@ -110,6 +110,88 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Create conventional user (for development)
+  app.post("/api/seed-user", async (req, res) => {
+    try {
+      // Check if user already exists
+      const existingUser = await storage.getUserByUsername("usuario");
+      if (existingUser) {
+        return res.json({
+          message: "User already exists",
+          credentials: {
+            username: "usuario",
+            password: "123456"
+          }
+        });
+      }
+
+      // Get or create organization
+      let org = await storage.getOrganizationByDomain("servicedesk.com");
+      if (!org) {
+        org = await storage.createOrganization({
+          name: "ServiceDesk Pro",
+          domain: "servicedesk.com",
+          isActive: true,
+        });
+      }
+
+      const userData = {
+        username: "usuario",
+        password: "123456",
+        name: "Usuário Convencional"
+      };
+
+      // Create conventional user
+      const hashedPassword = await hashPassword(userData.password);
+      const user = await storage.createUser({
+        orgId: org.id,
+        username: userData.username,
+        name: userData.name,
+        password: hashedPassword,
+        mfaSecret: null,
+        locale: "pt-BR",
+        timeZone: "America/Sao_Paulo",
+        isActive: true,
+      });
+
+      // Get or create team
+      const teams = await storage.getTeamsByOrg(org.id);
+      let team = teams.find(t => t.name === "Usuários");
+
+      if (!team) {
+        team = await storage.createTeam({
+          orgId: org.id,
+          departmentId: null,
+          name: "Usuários",
+          description: "Usuários convencionais do sistema",
+          isActive: true,
+        });
+      }
+
+      // Add user as requester only
+      await storage.createMembership({
+        userId: user.id,
+        teamId: team.id,
+        roles: ["REQUESTER"],
+        isActive: true,
+      });
+
+      res.json({
+        message: "User created successfully",
+        credentials: {
+          username: userData.username,
+          password: userData.password
+        }
+      });
+    } catch (error) {
+      console.error("Seed user error:", error);
+      res.status(500).json({
+        message: "Internal server error",
+        error: error.message
+      });
+    }
+  });
+
   // Get current user profile with teams
   app.get("/api/me", authenticateToken, async (req: AuthenticatedRequest, res) => {
     try {
@@ -302,8 +384,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const assignee = ticket.assigneeId ? await storage.getUser(ticket.assigneeId) : null;
           return {
             ...ticket,
-            requester: requester ? { id: requester.id, username: requester.username, name: requester.name, email: requester.email } : null,
-            assignee: assignee ? { id: assignee.id, username: assignee.username, name: assignee.name, email: assignee.email } : null,
+            requester: requester ? { id: requester.id, username: requester.username, name: requester.name } : null,
+            assignee: assignee ? { id: assignee.id, username: assignee.username, name: assignee.name } : null,
           };
         })
       );
@@ -340,8 +422,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const team = ticket.teamId ? await storage.getTeam(ticket.teamId) : null;
           return {
             ...ticket,
-            requester: requester ? { id: requester.id, username: requester.username, name: requester.name, email: requester.email } : null,
-            assignee: assignee ? { id: assignee.id, username: assignee.username, name: assignee.name, email: assignee.email } : null,
+            requester: requester ? { id: requester.id, username: requester.username, name: requester.name } : null,
+            assignee: assignee ? { id: assignee.id, username: assignee.username, name: assignee.name } : null,
             team: team ? { id: team.id, name: team.name } : null,
           };
         })
@@ -374,15 +456,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const author = await storage.getUser(comment.authorId);
           return {
             ...comment,
-            author: author ? { id: author.id, username: author.username, name: author.name, email: author.email } : null,
+            author: author ? { id: author.id, username: author.username, name: author.name } : null,
           };
         })
       );
 
       res.json({
         ...ticket,
-        requester: requester ? { id: requester.id, username: requester.username, name: requester.name, email: requester.email } : null,
-        assignee: assignee ? { id: assignee.id, username: assignee.username, name: assignee.name, email: assignee.email } : null,
+        requester: requester ? { id: requester.id, username: requester.username, name: requester.name } : null,
+        assignee: assignee ? { id: assignee.id, username: assignee.username, name: assignee.name } : null,
         team: team ? { id: team.id, name: team.name } : null,
         comments: enrichedComments,
         events,
@@ -502,7 +584,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       res.status(201).json({
         ...comment,
-        author: author ? { id: author.id, username: author.username, name: author.name, email: author.email } : null,
+        author: author ? { id: author.id, username: author.username, name: author.name } : null,
       });
     } catch (error) {
       console.error("Create comment error:", error);

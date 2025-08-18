@@ -6,7 +6,6 @@ const mockUser = {
   id: "1",
   username: "admin", 
   name: "Administrador",
-  email: "admin@sistema.com",
   teams: [{ id: "1", name: "Administradores", roles: ["ADMIN"] }]
 };
 import {

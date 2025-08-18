@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -17,7 +16,6 @@ import { Plus } from "lucide-react";
 const createUserSchema = z.object({
   username: z.string().min(3, "Nome de usuário deve ter pelo menos 3 caracteres"),
   name: z.string().min(2, "Nome deve ter pelo menos 2 caracteres"),
-  email: z.string().email("Email inválido"),
   password: z.string().min(6, "Senha deve ter pelo menos 6 caracteres"),
   roles: z.array(z.string()).min(1, "Selecione pelo menos uma função"),
   isActive: z.boolean().default(true),
@@ -46,7 +44,6 @@ export default function CreateUserModal({ children }: CreateUserModalProps) {
     defaultValues: {
       username: "",
       name: "",
-      email: "",
       password: "",
       roles: ["REQUESTER"],
       isActive: true,
@@ -121,20 +118,6 @@ export default function CreateUserModal({ children }: CreateUserModalProps) {
                   <FormLabel>Nome Completo</FormLabel>
                   <FormControl>
                     <Input placeholder="Digite o nome completo" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="email"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Email</FormLabel>
-                  <FormControl>
-                    <Input type="email" placeholder="Digite o email" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

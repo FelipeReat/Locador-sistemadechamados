@@ -5,7 +5,6 @@ export const mockUser = {
   id: "1",
   username: "admin",
   name: "Administrador",
-  email: "admin@sistema.com",
   orgId: "1",
   role: "ADMIN",
   teams: [{ 

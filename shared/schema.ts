@@ -51,8 +51,7 @@ export const teams = pgTable("teams", {
 export const users = pgTable("users", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   orgId: varchar("org_id").references(() => organizations.id).notNull(),
-  email: text("email").notNull().unique(),
-  username: text("username").notNull().unique(), // Added username
+  username: text("username").notNull().unique(),
   name: text("name").notNull(),
   password: text("password").notNull(),
   mfaSecret: text("mfa_secret"),
