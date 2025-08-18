@@ -90,11 +90,20 @@ export default {
           500: "hsl(0 84% 60%)",
           600: "hsl(0 84% 55%)",
         },
+        neon: {
+          cyan: "hsl(var(--neon-cyan))",
+          purple: "hsl(var(--neon-purple))",
+          green: "hsl(var(--neon-green))",
+          pink: "hsl(var(--neon-pink))",
+          yellow: "hsl(var(--neon-yellow))",
+        },
       },
       fontFamily: {
-        sans: ["var(--font-sans)", "Inter", "system-ui", "sans-serif"],
-        serif: ["var(--font-serif)", "Georgia", "serif"],
-        mono: ["var(--font-mono)", "Menlo", "monospace"],
+        sans: ["var(--font-sans)", "Space Grotesk", "system-ui", "sans-serif"],
+        serif: ["var(--font-serif)", "Orbitron", "serif"],
+        mono: ["var(--font-mono)", "Rajdhani", "monospace"],
+        display: ["Orbitron", "serif"],
+        cyber: ["Rajdhani", "monospace"],
       },
       keyframes: {
         "accordion-down": {
