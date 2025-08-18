@@ -1,75 +1,65 @@
-import { Switch, Route } from "wouter";
-import { QueryClientProvider } from "@tanstack/react-query";
-import { Toaster } from "@/components/ui/toaster";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { queryClient } from "./lib/queryClient";
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { Router, Route, Switch, Redirect } from 'wouter';
+import { Toaster } from '@/components/ui/toaster';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
+import LoginPage from './pages/simple-login';
+import TicketList from './pages/simple-tickets';
+import TicketDetail from './pages/simple-ticket-detail';
+import CreateTicket from './pages/simple-create-ticket';
 
-// Pages
-import Dashboard from "./pages/dashboard-simple";
-import TicketsIndex from "./pages/tickets/index";
-import TicketDetail from "./pages/tickets/detail";
-import CreateTicket from "./pages/tickets/create";
-import Catalog from "./pages/catalog";
-import KnowledgeBase from "./pages/knowledge-base";
-import AdminUsers from "./pages/admin/users";
-import AdminTeams from "./pages/admin/teams";
-import AdminAutomations from "./pages/admin/automations";
-import AdminSLA from "./pages/admin/sla";
-import CSATSurvey from "./pages/csat-survey";
-import Reports from "./pages/reports";
-import NotFound from "./pages/not-found";
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 5 * 60 * 1000,
+    },
+  },
+});
 
-// Layout
-import Sidebar from "./components/layout/sidebar";
-import Header from "./components/layout/header";
+function AppContent() {
+  const { user, isLoading } = useAuth();
 
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
 
-function AppLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen flex bg-gray-50 dark:bg-gray-900">
-      <Sidebar />
-      <main className="flex-1 ml-64">
-        <Header />
-        <div className="p-6">
-          {children}
-        </div>
-      </main>
+    <div className="min-h-screen bg-gray-50">
+      <Router>
+        <Switch>
+          <Route path="/login">
+            {user ? <Redirect to="/tickets" /> : <LoginPage />}
+          </Route>
+          
+          <Route path="/tickets">
+            {user ? <TicketList /> : <Redirect to="/login" />}
+          </Route>
+          <Route path="/tickets/:id">
+            {user ? <TicketDetail /> : <Redirect to="/login" />}
+          </Route>
+          <Route path="/create-ticket">
+            {user ? <CreateTicket /> : <Redirect to="/login" />}
+          </Route>
+          
+          <Route path="/">
+            {user ? <Redirect to="/tickets" /> : <Redirect to="/login" />}
+          </Route>
+        </Switch>
+      </Router>
+      <Toaster />
     </div>
   );
 }
 
-function AuthenticatedApp() {
-  return (
-    <AppLayout>
-      <Switch>
-        <Route path="/" component={Dashboard} />
-        <Route path="/dashboard" component={Dashboard} />
-        <Route path="/tickets" component={TicketsIndex} />
-        <Route path="/tickets/create" component={CreateTicket} />
-        <Route path="/tickets/:id" component={TicketDetail} />
-        <Route path="/catalog" component={Catalog} />
-        <Route path="/knowledge" component={KnowledgeBase} />
-        <Route path="/admin/users" component={AdminUsers} />
-        <Route path="/admin/teams" component={AdminTeams} />
-        <Route path="/admin/automations" component={AdminAutomations} />
-        <Route path="/admin/sla" component={AdminSLA} />
-        <Route path="/reports" component={Reports} />
-        <Route path="/csat-survey" component={CSATSurvey} />
-        <Route component={NotFound} />
-      </Switch>
-    </AppLayout>
-  );
-}
-
-function App() {
+export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <AuthenticatedApp />
-      </TooltipProvider>
+      <AuthProvider>
+        <AppContent />
+      </AuthProvider>
     </QueryClientProvider>
   );
 }
-
-export default App;

@@ -1,6 +1,6 @@
 # Overview
 
-This is a corporate Service Desk ticketing system built as a full-stack TypeScript application. The system provides comprehensive ticket management, service catalog, knowledge base, and administrative features for organizations. It follows a modular architecture with a React frontend, Express backend, and PostgreSQL database using Drizzle ORM.
+This is a simplified Service Desk ticketing system built as a full-stack TypeScript application. The system focuses on fast, direct communication between users and support teams with minimal complexity. It provides essential ticket management with a streamlined React frontend, Express backend, and PostgreSQL database using Drizzle ORM.
 
 # User Preferences
 
@@ -33,12 +33,11 @@ Preferred communication style: Simple, everyday language.
 - **Audit Trail**: Complete event tracking for tickets and system changes
 
 ## Key Features
-- **Ticket Management**: Full CRUD operations with status transitions, assignments, and comments
-- **SLA Tracking**: Automated SLA monitoring with escalation rules
-- **Automation Rules**: Configurable business rules for ticket routing and actions
-- **Approval Workflows**: Multi-step approval processes for specific ticket types
-- **File Attachments**: Support for file uploads with tickets and comments
-- **Real-time Updates**: Live updates for ticket changes and notifications
+- **Simple Ticket Creation**: Users can quickly create tickets with title, description, and priority
+- **Direct Communication**: Real-time chat-like comments between users and support team
+- **Basic Status Tracking**: Open, In Progress, Resolved, Closed
+- **Team Assignment**: Simple assignment to support team members
+- **File Attachments**: Basic file upload support for tickets
 
 ## Security Architecture
 - **Authentication**: Secure JWT implementation with token expiration
