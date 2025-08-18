@@ -9,7 +9,7 @@ import { Home, Ticket, Clock, CheckCircle, User, BarChart3, Settings, FileText, 
 
 const priorityColors = {
   LOW: 'bg-green-100 text-green-800',
-  MEDIUM: 'bg-yellow-100 text-yellow-800',
+  MEDIUM: 'bg-blue-100 text-blue-800',
   HIGH: 'bg-orange-100 text-orange-800',
   URGENT: 'bg-red-100 text-red-800',
 };
@@ -194,7 +194,7 @@ export default function SupportDashboard() {
               </CardContent>
             </Card>
 
-            <Card className="border-l-4 border-l-yellow-500">
+            <Card className="border-l-4 border-l-orange-500">
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
@@ -202,7 +202,7 @@ export default function SupportDashboard() {
                     <p className="text-3xl font-bold text-gray-900">{stats.open}</p>
                     <p className="text-sm text-gray-500 mt-1">Aguardando aprovação • Alta relevância</p>
                   </div>
-                  <Clock className="w-8 h-8 text-yellow-500" />
+                  <Clock className="w-8 h-8 text-orange-500" />
                 </div>
               </CardContent>
             </Card>
@@ -306,7 +306,7 @@ export default function SupportDashboard() {
                         <td className="py-3 px-4">
                           <Badge 
                             className={`${
-                              ticket.status === 'OPEN' ? 'bg-yellow-100 text-yellow-800' :
+                              ticket.status === 'OPEN' ? 'bg-orange-100 text-orange-800' :
                               ticket.status === 'IN_PROGRESS' ? 'bg-blue-100 text-blue-800' :
                               ticket.status === 'RESOLVED' ? 'bg-green-100 text-green-800' :
                               'bg-gray-100 text-gray-800'

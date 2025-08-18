@@ -1,10 +1,11 @@
 @import 'tailwindcss/base';
 @import 'tailwindcss/components';
 @import 'tailwindcss/utilities';
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
 @layer base {
   :root {
-    /* Cores baseadas na imagem - tema limpo */
+    /* Cores baseadas na imagem - tema limpo sem amarelo */
     --background: 249 250 251; /* Cinza muito claro */
     --foreground: 31 41 55; /* Cinza escuro */
     --card: 255 255 255;
@@ -26,9 +27,9 @@
     --ring: 59 130 246;
     --radius: 0.5rem;
 
-    /* Cores para status */
+    /* Cores para status - sem amarelo */
     --success: 34 197 94;
-    --warning: 245 158 11;
+    --warning: 249 115 22; /* Laranja ao invés de amarelo */
     --info: 59 130 246;
   }
 
@@ -60,22 +61,23 @@
 
   body {
     @apply bg-background text-foreground;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
   }
 }
 
-/* Classes para prioridades */
+/* Classes para prioridades - sem amarelo */
 .priority-low {
-  @apply bg-green-100 text-green-800 border-green-200 dark:bg-green-900 dark:text-green-200 dark:border-green-800;
+  @apply bg-green-100 text-green-800 border-green-200;
 }
 
 .priority-medium {
-  @apply bg-yellow-100 text-yellow-800 border-yellow-200 dark:bg-yellow-900 dark:text-yellow-200 dark:border-yellow-800;
+  @apply bg-blue-100 text-blue-800 border-blue-200;
 }
 
 .priority-high {
-  @apply bg-orange-100 text-orange-800 border-orange-200 dark:bg-orange-900 dark:text-orange-200 dark:border-orange-800;
+  @apply bg-orange-100 text-orange-800 border-orange-200;
 }
 
 .priority-urgent {
-  @apply bg-red-100 text-red-800 border-red-200 dark:bg-red-900 dark:text-red-200 dark:border-red-800;
+  @apply bg-red-100 text-red-800 border-red-200;
 }
