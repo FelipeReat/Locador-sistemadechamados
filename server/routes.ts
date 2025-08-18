@@ -516,8 +516,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Service Catalog routes
   app.get("/api/catalog", async (req: AuthenticatedRequest, res) => {
     try {
-      const catalog = await storage.getServiceCatalog(req.user!.orgId);
-      res.json(catalog);
+      const catalogItems = await storage.getServiceCatalog(req.user!.orgId);
+      res.json(catalogItems);
     } catch (error) {
       console.error("Get catalog error:", error);
       res.status(500).json({ message: "Internal server error" });

@@ -14,7 +14,7 @@ export default function Catalog() {
 
   const { data: catalogItems = [], isLoading } = useAuthenticatedQuery(
     ['catalog'],
-    '/catalog'
+    '/api/catalog'
   );
 
   const filteredItems = catalogItems.filter((item: any) =>

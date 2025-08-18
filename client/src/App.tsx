@@ -1,4 +1,3 @@
-
 import { Switch, Route } from "wouter";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -46,7 +45,7 @@ function AuthenticatedApp() {
         <Route path="/" component={Dashboard} />
         <Route path="/dashboard" component={Dashboard} />
         <Route path="/tickets" component={TicketsIndex} />
-        <Route path="/tickets/new" component={CreateTicket} />
+        <Route path="/tickets/create" component={CreateTicket} />
         <Route path="/tickets/:id" component={TicketDetail} />
         <Route path="/catalog" component={Catalog} />
         <Route path="/knowledge" component={KnowledgeBase} />

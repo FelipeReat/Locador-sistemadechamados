@@ -135,7 +135,7 @@ export default function TicketsIndexPage() {
           Chamados
         </h1>
         <div className="flex items-center space-x-2">
-          <Button onClick={() => setLocation("/tickets/new")}>
+          <Button onClick={() => setLocation("/tickets/create")}>
             <Plus className="w-4 h-4 mr-2" />
             Novo Chamado
           </Button>
