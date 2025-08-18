@@ -2,9 +2,10 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Card, CardContent } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { User } from 'lucide-react';
+import { Home, Ticket, Clock, CheckCircle, User, BarChart3, Settings, FileText, Users } from 'lucide-react';
 
 const priorityColors = {
   LOW: 'bg-green-100 text-green-800',
@@ -105,112 +106,249 @@ export default function SupportDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      {/* Header Simples */}
-      <div className="bg-white border-b p-4">
-        <div className="flex justify-between items-center">
-          <h1 className="text-xl font-medium">Dashboard de Suporte</h1>
-          <div className="flex items-center gap-3">
-            <span className="text-sm">{user?.name}</span>
-            <Button size="sm" onClick={logout} data-testid="button-logout">
-              Sair
-            </Button>
+    <div className="min-h-screen bg-gray-50 flex">
+      {/* Sidebar */}
+      <div className="w-64 bg-blue-600 text-white flex flex-col">
+        <div className="p-6">
+          <h1 className="text-xl font-semibold">Controle de Atendimento</h1>
+          <p className="text-blue-100 text-sm mt-1">Painel</p>
+        </div>
+        
+        <nav className="flex-1 px-4">
+          <ul className="space-y-1">
+            <li>
+              <div className="flex items-center px-3 py-2 text-sm bg-blue-500 rounded">
+                <Home className="w-4 h-4 mr-3" />
+                Geral
+              </div>
+            </li>
+            <li>
+              <div className="flex items-center px-3 py-2 text-sm text-blue-100 hover:bg-blue-500 rounded cursor-pointer">
+                <Ticket className="w-4 h-4 mr-3" />
+                Requisições
+              </div>
+            </li>
+            <li>
+              <div className="flex items-center px-3 py-2 text-sm text-blue-100 hover:bg-blue-500 rounded cursor-pointer">
+                <BarChart3 className="w-4 h-4 mr-3" />
+                Relatórios
+              </div>
+            </li>
+            <li>
+              <div className="flex items-center px-3 py-2 text-sm text-blue-100 hover:bg-blue-500 rounded cursor-pointer">
+                <Users className="w-4 h-4 mr-3" />
+                Usuários
+              </div>
+            </li>
+            <li>
+              <div className="flex items-center px-3 py-2 text-sm text-blue-100 hover:bg-blue-500 rounded cursor-pointer">
+                <Settings className="w-4 h-4 mr-3" />
+                Configurações
+              </div>
+            </li>
+          </ul>
+        </nav>
+
+        <div className="p-4 border-t border-blue-500">
+          <div className="flex items-center text-sm">
+            <User className="w-4 h-4 mr-2" />
+            <span>{user?.name}</span>
           </div>
+          <Button 
+            size="sm" 
+            variant="ghost" 
+            className="w-full mt-2 text-blue-100 hover:bg-blue-500" 
+            onClick={logout} 
+            data-testid="button-logout"
+          >
+            Sair do Sistema
+          </Button>
         </div>
       </div>
 
-      {/* Stats Simples */}
-      <div className="p-4">
-        <div className="grid grid-cols-4 gap-4 mb-6">
-          <div className="bg-white p-4 rounded border">
-            <div className="text-2xl font-bold">{stats.total}</div>
-            <div className="text-sm text-gray-600">Total</div>
-          </div>
-          <div className="bg-white p-4 rounded border">
-            <div className="text-2xl font-bold text-blue-600">{stats.open}</div>
-            <div className="text-sm text-gray-600">Abertos</div>
-          </div>
-          <div className="bg-white p-4 rounded border">
-            <div className="text-2xl font-bold text-yellow-600">{stats.inProgress}</div>
-            <div className="text-sm text-gray-600">Em Andamento</div>
-          </div>
-          <div className="bg-white p-4 rounded border">
-            <div className="text-2xl font-bold text-green-600">{stats.resolved}</div>
-            <div className="text-sm text-gray-600">Resolvidos</div>
+      {/* Main Content */}
+      <div className="flex-1">
+        {/* Top Header */}
+        <div className="bg-white border-b px-6 py-4">
+          <div className="flex justify-between items-center">
+            <h2 className="text-2xl font-semibold text-gray-800">Painel</h2>
+            <div className="text-sm text-gray-500">
+              Vista geral das requisições de atendimento
+            </div>
           </div>
         </div>
 
-        {/* Lista de Chamados */}
-        <div className="grid grid-cols-4 gap-4">
-          {Object.entries(statusConfig).map(([status, config]) => {
-            const statusTickets = getTicketsByStatus(status);
-            
-            return (
-              <div key={status} className="bg-white rounded border">
-                <div className="p-3 border-b">
-                  <h3 className="font-medium">{config.label} ({statusTickets.length})</h3>
+        <div className="p-6">
+          {/* Stats Cards */}
+          <div className="grid grid-cols-4 gap-6 mb-8">
+            <Card className="border-l-4 border-l-blue-500">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-600">Total de Requisições</p>
+                    <p className="text-3xl font-bold text-gray-900">{stats.total}</p>
+                    <p className="text-sm text-gray-500 mt-1">Total • Primeira categoria</p>
+                  </div>
+                  <Ticket className="w-8 h-8 text-blue-500" />
                 </div>
-                
-                <div className="p-3 space-y-2 max-h-80 overflow-y-auto">
-                  {statusTickets.map((ticket: any) => (
-                    <div key={ticket.id} className="p-3 border rounded" data-testid={`kanban-ticket-${ticket.id}`}>
-                      <div className="flex justify-between items-start mb-2">
-                        <h4 className="text-sm font-medium">{ticket.title}</h4>
-                        <span className={`px-2 py-1 text-xs rounded ${priorityColors[ticket.priority as keyof typeof priorityColors]}`}>
-                          {ticket.priority}
-                        </span>
-                      </div>
-                      
-                      <p className="text-xs text-gray-600 mb-3">{ticket.description}</p>
-                      
-                      <div className="flex items-center text-xs text-gray-500 mb-3">
-                        <User className="h-3 w-3 mr-1" />
-                        {ticket.requester?.name}
-                      </div>
-                      
-                      <div className="space-y-2">
-                        <Select
-                          value={ticket.status}
-                          onValueChange={(newStatus) => handleStatusChange(ticket.id, newStatus)}
-                        >
-                          <SelectTrigger className="h-8 text-xs">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="OPEN">Aberto</SelectItem>
-                            <SelectItem value="IN_PROGRESS">Em Andamento</SelectItem>
-                            <SelectItem value="RESOLVED">Resolvido</SelectItem>
-                            <SelectItem value="CLOSED">Fechado</SelectItem>
-                          </SelectContent>
-                        </Select>
+              </CardContent>
+            </Card>
 
-                        <Select
-                          value={ticket.assigneeId || 'unassigned'}
-                          onValueChange={(assigneeId) => handleAssigneeChange(ticket.id, assigneeId)}
-                        >
-                          <SelectTrigger className="h-8 text-xs">
-                            <SelectValue placeholder="Atribuir..." />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="unassigned">Não atribuído</SelectItem>
-                            {agents?.map((agent: any) => (
-                              <SelectItem key={agent.id} value={agent.id}>
-                                {agent.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      
-                      <div className="text-xs text-gray-500 mt-2 pt-2 border-t">
-                        {new Date(ticket.createdAt).toLocaleDateString()}
-                      </div>
-                    </div>
-                  ))}
+            <Card className="border-l-4 border-l-yellow-500">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-600">Requisições Pendentes</p>
+                    <p className="text-3xl font-bold text-gray-900">{stats.open}</p>
+                    <p className="text-sm text-gray-500 mt-1">Aguardando aprovação • Alta relevância</p>
+                  </div>
+                  <Clock className="w-8 h-8 text-yellow-500" />
                 </div>
+              </CardContent>
+            </Card>
+
+            <Card className="border-l-4 border-l-green-500">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-600">Requisições Aprovadas</p>
+                    <p className="text-3xl font-bold text-gray-900">{stats.resolved}</p>
+                    <p className="text-sm text-gray-500 mt-1">Fim mês • Disponível com sucesso</p>
+                  </div>
+                  <CheckCircle className="w-8 h-8 text-green-500" />
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="border-l-4 border-l-purple-500">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-600">Status Ativo</p>
+                    <p className="text-3xl font-bold text-gray-900">{stats.inProgress}</p>
+                    <p className="text-sm text-gray-500 mt-1">Total enviados • Primeira atualização</p>
+                  </div>
+                  <BarChart3 className="w-8 h-8 text-purple-500" />
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Ações Rápidas */}
+          <div className="grid grid-cols-3 gap-6 mb-8">
+            <Card className="bg-blue-600 text-white hover:bg-blue-700 cursor-pointer transition-colors">
+              <CardContent className="p-6">
+                <div className="flex items-center">
+                  <Ticket className="w-8 h-8 mr-4" />
+                  <div>
+                    <h3 className="font-semibold text-lg">Nova Requisição</h3>
+                    <p className="text-blue-100 text-sm">Criar solicitação de atendimento</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="hover:shadow-md cursor-pointer transition-shadow">
+              <CardContent className="p-6">
+                <div className="flex items-center">
+                  <FileText className="w-8 h-8 mr-4 text-purple-600" />
+                  <div>
+                    <h3 className="font-semibold text-lg text-gray-900">Ver Requisições</h3>
+                    <p className="text-gray-600 text-sm">Gerenciar solicitações</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="hover:shadow-md cursor-pointer transition-shadow">
+              <CardContent className="p-6">
+                <div className="flex items-center">
+                  <BarChart3 className="w-8 h-8 mr-4 text-green-600" />
+                  <div>
+                    <h3 className="font-semibold text-lg text-gray-900">Geração de Ficha</h3>
+                    <p className="text-gray-600 text-sm">Gerar fichas técnicas</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Requisições Recentes */}
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="text-xl font-semibold text-gray-900">Requisições Recentes</h3>
+                <Button variant="outline" size="sm">Ver todos</Button>
               </div>
-            );
-          })}
+              
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b border-gray-200">
+                      <th className="text-left py-3 px-4 text-sm font-medium text-gray-600">ID</th>
+                      <th className="text-left py-3 px-4 text-sm font-medium text-gray-600">SOLICITANTE</th>
+                      <th className="text-left py-3 px-4 text-sm font-medium text-gray-600">FORNECEDORES</th>
+                      <th className="text-left py-3 px-4 text-sm font-medium text-gray-600">TIPO DE COMBUSTÍVEL</th>
+                      <th className="text-left py-3 px-4 text-sm font-medium text-gray-600">QUANTIDADE</th>
+                      <th className="text-left py-3 px-4 text-sm font-medium text-gray-600">STATUS</th>
+                      <th className="text-left py-3 px-4 text-sm font-medium text-gray-600">DATA</th>
+                      <th className="text-left py-3 px-4 text-sm font-medium text-gray-600">AÇÕES</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {tickets?.slice(0, 5).map((ticket: any) => (
+                      <tr key={ticket.id} className="border-b border-gray-100 hover:bg-gray-50" data-testid={`table-ticket-${ticket.id}`}>
+                        <td className="py-3 px-4 text-sm">{ticket.id}</td>
+                        <td className="py-3 px-4 text-sm">{ticket.requester?.name || 'N/A'}</td>
+                        <td className="py-3 px-4 text-sm">-</td>
+                        <td className="py-3 px-4 text-sm">{ticket.title}</td>
+                        <td className="py-3 px-4 text-sm">-</td>
+                        <td className="py-3 px-4">
+                          <Badge 
+                            className={`${
+                              ticket.status === 'OPEN' ? 'bg-yellow-100 text-yellow-800' :
+                              ticket.status === 'IN_PROGRESS' ? 'bg-blue-100 text-blue-800' :
+                              ticket.status === 'RESOLVED' ? 'bg-green-100 text-green-800' :
+                              'bg-gray-100 text-gray-800'
+                            }`}
+                          >
+                            {statusConfig[ticket.status as keyof typeof statusConfig]?.label}
+                          </Badge>
+                        </td>
+                        <td className="py-3 px-4 text-sm text-gray-600">
+                          {new Date(ticket.createdAt).toLocaleDateString('pt-BR')}
+                        </td>
+                        <td className="py-3 px-4">
+                          <div className="flex gap-2">
+                            <Select
+                              value={ticket.status}
+                              onValueChange={(newStatus) => handleStatusChange(ticket.id, newStatus)}
+                            >
+                              <SelectTrigger className="h-8 w-32 text-xs">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="OPEN">Aberto</SelectItem>
+                                <SelectItem value="IN_PROGRESS">Em Andamento</SelectItem>
+                                <SelectItem value="RESOLVED">Resolvido</SelectItem>
+                                <SelectItem value="CLOSED">Fechado</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </td>
+                      </tr>
+                    )) || (
+                      <tr>
+                        <td colSpan={8} className="py-8 text-center text-gray-500">
+                          Nenhuma requisição encontrada
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
     </div>
