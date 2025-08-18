@@ -40,21 +40,21 @@ export default function TicketTimeline({ events }: TicketTimelineProps) {
   const getEventColor = (eventType: string) => {
     switch (eventType) {
       case 'CREATED':
-        return 'bg-blue-100 text-blue-600 dark:bg-blue-900 dark:text-blue-200';
+        return 'bg-blue-50 text-blue-800 dark:bg-blue-900/20 dark:text-blue-200';
       case 'ASSIGNED':
-        return 'bg-green-100 text-green-600 dark:bg-green-900 dark:text-green-200';
+        return 'bg-green-50 text-green-800 dark:bg-green-900/20 dark:text-green-200';
       case 'STATUS_CHANGED':
-        return 'bg-blue-100 text-blue-600 dark:bg-blue-900 dark:text-blue-200';
+        return 'bg-slate-50 text-slate-700 dark:bg-slate-800/50 dark:text-slate-300';
       case 'COMMENT_ADDED':
-        return 'bg-purple-100 text-purple-600 dark:bg-purple-900 dark:text-purple-200';
+        return 'bg-indigo-50 text-indigo-800 dark:bg-indigo-900/20 dark:text-indigo-200';
       case 'ESCALATED':
-        return 'bg-orange-100 text-orange-600 dark:bg-orange-900 dark:text-orange-200';
+        return 'bg-orange-50 text-orange-800 dark:bg-orange-900/20 dark:text-orange-200';
       case 'RESOLVED':
-        return 'bg-green-100 text-green-600 dark:bg-green-900 dark:text-green-200';
+        return 'bg-emerald-50 text-emerald-800 dark:bg-emerald-900/20 dark:text-emerald-200';
       case 'CLOSED':
-        return 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300';
+        return 'bg-gray-50 text-gray-700 dark:bg-gray-800/50 dark:text-gray-300';
       default:
-        return 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300';
+        return 'bg-gray-50 text-gray-700 dark:bg-gray-800/50 dark:text-gray-300';
     }
   };
 
