@@ -296,7 +296,7 @@ export default function KnowledgeBase() {
                 <CardHeader>
                   <div className="flex items-start justify-between">
                     <CardTitle className="text-lg flex items-center">
-                      <div className="w-6 h-6 bg-yellow-100 text-yellow-600 rounded-full flex items-center justify-center text-xs font-bold mr-3">
+                      <div className="w-6 h-6 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center text-xs font-bold mr-3">
                         {index + 1}
                       </div>
                       {article.title}

@@ -125,7 +125,7 @@ export default function Dashboard() {
                   <div className="flex items-center space-x-3">
                     <div className={`w-3 h-3 rounded-full ${
                       ticket.status === 'OPEN' ? 'bg-red-500' :
-                      ticket.status === 'IN_PROGRESS' ? 'bg-yellow-500' :
+                      ticket.status === 'IN_PROGRESS' ? 'bg-violet-500' :
                       'bg-green-500'
                     }`} />
                     <div>

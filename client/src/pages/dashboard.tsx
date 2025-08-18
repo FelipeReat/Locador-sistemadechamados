@@ -106,9 +106,9 @@ export default function Dashboard() {
             change="+0.3 vs. mês passado"
             changeType="positive"
             icon={StarIcon}
-            iconColor="text-amber-600"
-            iconBgColor="bg-amber-100"
-            gradient="from-amber-500/10 to-orange-500/10"
+            iconColor="text-rose-600"
+            iconBgColor="bg-rose-100"
+            gradient="from-rose-500/10 to-pink-500/10"
           />
         </div>
 
@@ -185,7 +185,7 @@ export default function Dashboard() {
                     {[
                       { status: 'NEW', label: 'Novos', count: statusData?.NEW || 0, color: 'bg-violet-400', bgColor: 'bg-violet-50' },
                       { status: 'IN_PROGRESS', label: 'Em Andamento', count: statusData?.IN_PROGRESS || 0, color: 'bg-blue-400', bgColor: 'bg-blue-50' },
-                      { status: 'WAITING_CUSTOMER', label: 'Aguardando Cliente', count: statusData?.WAITING_CUSTOMER || 0, color: 'bg-amber-400', bgColor: 'bg-amber-50' },
+                      { status: 'WAITING_CUSTOMER', label: 'Aguardando Cliente', count: statusData?.WAITING_CUSTOMER || 0, color: 'bg-sky-400', bgColor: 'bg-sky-50' },
                       { status: 'RESOLVED', label: 'Resolvidos', count: statusData?.RESOLVED || 0, color: 'bg-emerald-400', bgColor: 'bg-emerald-50' },
                     ].map(({ status, label, count, color, bgColor }) => {
                       const percentage = totalTickets > 0 ? (count / totalTickets) * 100 : 0;

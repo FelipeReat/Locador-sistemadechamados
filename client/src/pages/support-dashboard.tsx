@@ -181,7 +181,7 @@ export default function SupportDashboard() {
         <div className="p-6">
           {/* Stats Cards */}
           <div className="grid grid-cols-4 gap-6 mb-8">
-            <Card className="border-l-4 border-l-blue-500">
+            <Card className="card-elevated bg-gradient-to-br from-violet-50 to-indigo-50 border-violet-100">
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
@@ -189,12 +189,14 @@ export default function SupportDashboard() {
                     <p className="text-3xl font-bold text-gray-900">{stats.total}</p>
                     <p className="text-sm text-gray-500 mt-1">Total • Primeira categoria</p>
                   </div>
-                  <Ticket className="w-8 h-8 text-blue-500" />
+                  <div className="w-12 h-12 bg-violet-100 rounded-lg flex items-center justify-center">
+                    <Ticket className="w-6 h-6 text-violet-600" />
+                  </div>
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="border-l-4 border-l-orange-500">
+            <Card className="card-elevated bg-gradient-to-br from-sky-50 to-cyan-50 border-sky-100">
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
@@ -202,12 +204,14 @@ export default function SupportDashboard() {
                     <p className="text-3xl font-bold text-gray-900">{stats.open}</p>
                     <p className="text-sm text-gray-500 mt-1">Aguardando aprovação • Alta relevância</p>
                   </div>
-                  <Clock className="w-8 h-8 text-orange-500" />
+                  <div className="w-12 h-12 bg-sky-100 rounded-lg flex items-center justify-center">
+                    <Clock className="w-6 h-6 text-sky-600" />
+                  </div>
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="border-l-4 border-l-green-500">
+            <Card className="card-elevated bg-gradient-to-br from-emerald-50 to-green-50 border-emerald-100">
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
@@ -215,12 +219,14 @@ export default function SupportDashboard() {
                     <p className="text-3xl font-bold text-gray-900">{stats.resolved}</p>
                     <p className="text-sm text-gray-500 mt-1">Fim mês • Disponível com sucesso</p>
                   </div>
-                  <CheckCircle className="w-8 h-8 text-green-500" />
+                  <div className="w-12 h-12 bg-emerald-100 rounded-lg flex items-center justify-center">
+                    <CheckCircle className="w-6 h-6 text-emerald-600" />
+                  </div>
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="border-l-4 border-l-purple-500">
+            <Card className="card-elevated bg-gradient-to-br from-rose-50 to-pink-50 border-rose-100">
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
@@ -228,7 +234,9 @@ export default function SupportDashboard() {
                     <p className="text-3xl font-bold text-gray-900">{stats.inProgress}</p>
                     <p className="text-sm text-gray-500 mt-1">Total enviados • Primeira atualização</p>
                   </div>
-                  <BarChart3 className="w-8 h-8 text-purple-500" />
+                  <div className="w-12 h-12 bg-rose-100 rounded-lg flex items-center justify-center">
+                    <BarChart3 className="w-6 h-6 text-rose-600" />
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -236,22 +244,26 @@ export default function SupportDashboard() {
 
           {/* Ações Rápidas */}
           <div className="grid grid-cols-3 gap-6 mb-8">
-            <Card className="bg-blue-600 text-white hover:bg-blue-700 cursor-pointer transition-colors">
+            <Card className="card-elevated bg-gradient-to-r from-violet-600 to-indigo-600 text-white hover:from-violet-700 hover:to-indigo-700 cursor-pointer transition-all">
               <CardContent className="p-6">
                 <div className="flex items-center">
-                  <Ticket className="w-8 h-8 mr-4" />
+                  <div className="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center mr-4">
+                    <Ticket className="w-6 h-6" />
+                  </div>
                   <div>
                     <h3 className="font-semibold text-lg">Nova Requisição</h3>
-                    <p className="text-blue-100 text-sm">Criar solicitação de atendimento</p>
+                    <p className="text-violet-100 text-sm">Criar solicitação de atendimento</p>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="hover:shadow-md cursor-pointer transition-shadow">
+            <Card className="card-elevated bg-gradient-to-r from-sky-50 to-cyan-50 hover:from-sky-100 hover:to-cyan-100 cursor-pointer transition-all border-sky-200">
               <CardContent className="p-6">
                 <div className="flex items-center">
-                  <FileText className="w-8 h-8 mr-4 text-purple-600" />
+                  <div className="w-12 h-12 bg-sky-100 rounded-lg flex items-center justify-center mr-4">
+                    <FileText className="w-6 h-6 text-sky-600" />
+                  </div>
                   <div>
                     <h3 className="font-semibold text-lg text-gray-900">Ver Requisições</h3>
                     <p className="text-gray-600 text-sm">Gerenciar solicitações</p>
@@ -260,10 +272,12 @@ export default function SupportDashboard() {
               </CardContent>
             </Card>
 
-            <Card className="hover:shadow-md cursor-pointer transition-shadow">
+            <Card className="card-elevated bg-gradient-to-r from-emerald-50 to-green-50 hover:from-emerald-100 hover:to-green-100 cursor-pointer transition-all border-emerald-200">
               <CardContent className="p-6">
                 <div className="flex items-center">
-                  <BarChart3 className="w-8 h-8 mr-4 text-green-600" />
+                  <div className="w-12 h-12 bg-emerald-100 rounded-lg flex items-center justify-center mr-4">
+                    <BarChart3 className="w-6 h-6 text-emerald-600" />
+                  </div>
                   <div>
                     <h3 className="font-semibold text-lg text-gray-900">Geração de Ficha</h3>
                     <p className="text-gray-600 text-sm">Gerar fichas técnicas</p>
@@ -274,27 +288,41 @@ export default function SupportDashboard() {
           </div>
 
           {/* Requisições Recentes */}
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex justify-between items-center mb-6">
-                <h3 className="text-xl font-semibold text-gray-900">Requisições Recentes</h3>
-                <Button variant="outline" size="sm">Ver todos</Button>
+          <Card className="card-elevated">
+            <CardContent className="p-0">
+              <div className="p-6 border-b border-gray-100">
+                <div className="flex justify-between items-center">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-8 h-8 bg-violet-100 rounded-lg flex items-center justify-center">
+                      <Ticket className="w-4 h-4 text-violet-600" />
+                    </div>
+                    <h3 className="text-xl font-semibold text-gray-900">Requisições Recentes</h3>
+                  </div>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    className="bg-violet-50 border-violet-200 text-violet-700 hover:bg-violet-100 hover:border-violet-300"
+                  >
+                    Ver todos
+                  </Button>
+                </div>
               </div>
               
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b border-gray-200">
-                      <th className="text-left py-3 px-4 text-sm font-medium text-gray-600">ID</th>
-                      <th className="text-left py-3 px-4 text-sm font-medium text-gray-600">SOLICITANTE</th>
-                      <th className="text-left py-3 px-4 text-sm font-medium text-gray-600">FORNECEDORES</th>
-                      <th className="text-left py-3 px-4 text-sm font-medium text-gray-600">TIPO DE COMBUSTÍVEL</th>
-                      <th className="text-left py-3 px-4 text-sm font-medium text-gray-600">QUANTIDADE</th>
-                      <th className="text-left py-3 px-4 text-sm font-medium text-gray-600">STATUS</th>
-                      <th className="text-left py-3 px-4 text-sm font-medium text-gray-600">DATA</th>
-                      <th className="text-left py-3 px-4 text-sm font-medium text-gray-600">AÇÕES</th>
-                    </tr>
-                  </thead>
+              <div className="p-6">
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="border-b border-gray-200">
+                        <th className="text-left py-3 px-4 text-sm font-medium text-gray-600">ID</th>
+                        <th className="text-left py-3 px-4 text-sm font-medium text-gray-600">SOLICITANTE</th>
+                        <th className="text-left py-3 px-4 text-sm font-medium text-gray-600">FORNECEDORES</th>
+                        <th className="text-left py-3 px-4 text-sm font-medium text-gray-600">TIPO DE COMBUSTÍVEL</th>
+                        <th className="text-left py-3 px-4 text-sm font-medium text-gray-600">QUANTIDADE</th>
+                        <th className="text-left py-3 px-4 text-sm font-medium text-gray-600">STATUS</th>
+                        <th className="text-left py-3 px-4 text-sm font-medium text-gray-600">DATA</th>
+                        <th className="text-left py-3 px-4 text-sm font-medium text-gray-600">AÇÕES</th>
+                      </tr>
+                    </thead>
                   <tbody>
                     {tickets?.slice(0, 5).map((ticket: any) => (
                       <tr key={ticket.id} className="border-b border-gray-100 hover:bg-gray-50" data-testid={`table-ticket-${ticket.id}`}>
@@ -306,7 +334,7 @@ export default function SupportDashboard() {
                         <td className="py-3 px-4">
                           <Badge 
                             className={`${
-                              ticket.status === 'OPEN' ? 'bg-orange-100 text-orange-800' :
+                              ticket.status === 'OPEN' ? 'bg-sky-100 text-sky-800' :
                               ticket.status === 'IN_PROGRESS' ? 'bg-blue-100 text-blue-800' :
                               ticket.status === 'RESOLVED' ? 'bg-green-100 text-green-800' :
                               'bg-gray-100 text-gray-800'
@@ -346,6 +374,7 @@ export default function SupportDashboard() {
                     )}
                   </tbody>
                 </table>
+                </div>
               </div>
             </CardContent>
           </Card>

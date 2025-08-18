@@ -375,7 +375,7 @@ export default function CreateTicket() {
                 </p>
               </div>
               <div className="space-y-2">
-                <Badge className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200">
+                <Badge className="bg-sky-100 text-sky-800 dark:bg-sky-900 dark:text-sky-200">
                   P3 - Média
                 </Badge>
                 <p className="text-xs text-gray-600 dark:text-gray-400">
