@@ -5,8 +5,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useToast } from '@/hooks/use-toast';
-import { Ticket, Users, Clock, CheckCircle, User, ArrowRight } from 'lucide-react';
+import { Ticket, Users, Clock, CheckCircle, User, ArrowRight, Menu, Settings, UserPlus, BarChart3, FileText, Shield, Bell } from 'lucide-react';
 
 const priorityColors = {
   LOW: 'bg-green-100 text-green-800 border-green-200',
@@ -112,11 +113,50 @@ export default function SupportDashboard() {
       <header className="bg-white shadow">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-6">
-            <div className="flex items-center">
-              <Users className="h-8 w-8 text-blue-600 mr-3" />
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900">Dashboard de Suporte</h1>
-                <p className="text-gray-600">Gerenciamento de chamados</p>
+            <div className="flex items-center gap-4">
+              {/* Menu Dropdown */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm" className="h-10 w-10 p-0">
+                    <Menu className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="w-56">
+                  <DropdownMenuItem className="cursor-pointer">
+                    <BarChart3 className="mr-2 h-4 w-4" />
+                    <span>Análises</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem className="cursor-pointer">
+                    <Shield className="mr-2 h-4 w-4" />
+                    <span>Auditoria</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem className="cursor-pointer">
+                    <Bell className="mr-2 h-4 w-4" />
+                    <span>Automações</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem className="cursor-pointer">
+                    <Settings className="mr-2 h-4 w-4" />
+                    <span>Configurações</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem className="cursor-pointer">
+                    <UserPlus className="mr-2 h-4 w-4" />
+                    <span>Gerenciar Usuários</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem className="cursor-pointer">
+                    <FileText className="mr-2 h-4 w-4" />
+                    <span>Relatórios</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+
+              <div className="flex items-center">
+                <Users className="h-8 w-8 text-blue-600 mr-3" />
+                <div>
+                  <h1 className="text-2xl font-bold text-gray-900">Dashboard de Suporte</h1>
+                  <p className="text-gray-600">Gerenciamento de chamados</p>
+                </div>
               </div>
             </div>
             <div className="flex items-center gap-4">
