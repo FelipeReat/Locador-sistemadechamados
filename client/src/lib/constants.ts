@@ -28,7 +28,7 @@ export const ROLE_LABELS = {
 
 export const PRIORITY_COLORS = {
   P1: 'bg-red-50 text-red-800 border-red-300 dark:bg-red-900/20 dark:text-red-200 dark:border-red-700',
-  P2: 'bg-orange-50 text-orange-800 border-orange-300 dark:bg-orange-900/20 dark:text-orange-200 dark:border-orange-700',
+  P2: 'bg-red-50 text-red-700 border-red-200 dark:bg-red-900/10 dark:text-red-300 dark:border-red-800',
   P3: 'bg-slate-50 text-slate-700 border-slate-300 dark:bg-slate-800/50 dark:text-slate-300 dark:border-slate-600',
   P4: 'bg-gray-50 text-gray-700 border-gray-300 dark:bg-gray-800/50 dark:text-gray-300 dark:border-gray-600',
   P5: 'bg-stone-50 text-stone-700 border-stone-300 dark:bg-stone-800/50 dark:text-stone-300 dark:border-stone-600',
@@ -38,8 +38,8 @@ export const STATUS_COLORS = {
   NEW: 'bg-slate-50 text-slate-700 border-slate-300 dark:bg-slate-800/50 dark:text-slate-300 dark:border-slate-600',
   TRIAGE: 'bg-blue-50 text-blue-800 border-blue-300 dark:bg-blue-900/20 dark:text-blue-200 dark:border-blue-700',
   IN_PROGRESS: 'bg-indigo-50 text-indigo-800 border-indigo-300 dark:bg-indigo-900/20 dark:text-indigo-200 dark:border-indigo-700',
-  WAITING_CUSTOMER: 'bg-amber-50 text-amber-800 border-amber-300 dark:bg-amber-900/20 dark:text-amber-200 dark:border-amber-700',
-  WAITING_APPROVAL: 'bg-orange-50 text-orange-800 border-orange-300 dark:bg-orange-900/20 dark:text-orange-200 dark:border-orange-700',
+  WAITING_CUSTOMER: 'bg-purple-50 text-purple-800 border-purple-300 dark:bg-purple-900/20 dark:text-purple-200 dark:border-purple-700',
+  WAITING_APPROVAL: 'bg-pink-50 text-pink-800 border-pink-300 dark:bg-pink-900/20 dark:text-pink-200 dark:border-pink-700',
   ON_HOLD: 'bg-gray-50 text-gray-700 border-gray-300 dark:bg-gray-800/50 dark:text-gray-300 dark:border-gray-600',
   RESOLVED: 'bg-green-50 text-green-800 border-green-300 dark:bg-green-900/20 dark:text-green-200 dark:border-green-700',
   CLOSED: 'bg-emerald-50 text-emerald-700 border-emerald-300 dark:bg-emerald-900/20 dark:text-emerald-200 dark:border-emerald-700',
