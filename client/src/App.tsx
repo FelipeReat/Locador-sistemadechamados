@@ -1,17 +1,23 @@
+import './index.css';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Router, Route, Switch, Redirect } from 'wouter';
 import { Toaster } from '@/components/ui/toaster';
-import { AuthProvider, useAuth } from './contexts/AuthContext';
-import LoginPage from './pages/simple-login';
-import TicketList from './pages/simple-tickets';
-import TicketDetail from './pages/simple-ticket-detail';
-import CreateTicket from './pages/simple-create-ticket';
-import SupportDashboard from './pages/support-dashboard';
+
+// Import pages
+import LoginPage from '@/pages/simple-login';
+import TicketsPage from '@/pages/simple-tickets';
+import CreateTicketPage from '@/pages/simple-create-ticket';
+import TicketDetailPage from '@/pages/simple-ticket-detail';
+import SupportDashboard from '@/pages/support-dashboard';
+
+// Import context
+import { AuthProvider, useAuth } from '@/contexts/AuthContext';
 
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 5 * 60 * 1000,
+      retry: 1,
+      refetchOnWindowFocus: false,
     },
   },
 });
@@ -32,32 +38,31 @@ function AppContent() {
       <Router>
         <Switch>
           <Route path="/login">
-            {user ? <Redirect to="/dashboard" /> : <LoginPage />}
+            {user ? <Redirect to={user.role === 'AGENT' || user.role === 'ADMIN' ? '/support' : '/tickets'} /> : <LoginPage />}
           </Route>
-          
+
           <Route path="/tickets">
-            {user ? <TicketList /> : <Redirect to="/login" />}
+            {!user ? <Redirect to="/login" /> : <TicketsPage />}
           </Route>
+
+          <Route path="/tickets/create">
+            {!user ? <Redirect to="/login" /> : <CreateTicketPage />}
+          </Route>
+
           <Route path="/tickets/:id">
-            {user ? <TicketDetail /> : <Redirect to="/login" />}
+            {!user ? <Redirect to="/login" /> : <TicketDetailPage />}
           </Route>
-          <Route path="/create-ticket">
-            {user ? <CreateTicket /> : <Redirect to="/login" />}
-          </Route>
+
           <Route path="/support">
-            {user?.role === 'AGENT' || user?.role === 'ADMIN' ? <SupportDashboard /> : <Redirect to="/tickets" />}
+            {!user ? <Redirect to="/login" /> : 
+             (user.role === 'AGENT' || user.role === 'ADMIN') ? 
+             <SupportDashboard /> : <Redirect to="/tickets" />}
           </Route>
-          
+
           <Route path="/">
-            {user ? <Redirect to="/dashboard" /> : <Redirect to="/login" />}
-          </Route>
-          
-          <Route path="/dashboard">
-            {user ? (
-              user.role === 'AGENT' || user.role === 'ADMIN' 
-                ? <Redirect to="/support" /> 
-                : <Redirect to="/tickets" />
-            ) : <Redirect to="/login" />}
+            {!user ? <Redirect to="/login" /> : 
+             (user.role === 'AGENT' || user.role === 'ADMIN') ? 
+             <Redirect to="/support" /> : <Redirect to="/tickets" />}
           </Route>
         </Switch>
       </Router>

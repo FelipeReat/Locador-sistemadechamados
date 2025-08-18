@@ -199,31 +199,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: "Not authenticated" });
       }
 
-      // Get user memberships with team data
+      // Get user memberships to determine role
       const memberships = await storage.getUserMemberships(req.user.id);
-      const teams = await Promise.all(
-        memberships.map(async (membership) => {
-          const team = await storage.getTeam(membership.teamId);
-          return {
-            id: team?.id || membership.teamId,
-            name: team?.name || "Unknown Team",
-            roles: membership.roles,
-          };
-        })
-      );
+      const allRoles = memberships.flatMap(m => m.roles);
 
-      const userProfile = {
-        ...req.user,
-        teams,
-      };
+      let role = 'USER';
+      if (allRoles.includes('ADMIN')) {
+        role = 'ADMIN';
+      } else if (allRoles.includes('AGENT')) {
+        role = 'AGENT';
+      }
 
-      // Remove password from response
-      delete userProfile.password;
-
-      res.json(userProfile);
+      res.json({
+        id: req.user.id,
+        name: req.user.name,
+        username: req.user.username,
+        email: `${req.user.username}@servicedesk.com`,
+        role: role,
+      });
     } catch (error) {
-      console.error("Get user profile error:", error);
-      res.status(500).json({ message: "Internal server error" });
+      console.error('Error getting user info:', error);
+      res.status(500).json({ message: 'Internal server error' });
     }
   });
 
@@ -320,6 +316,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Update last login
       await storage.updateUser(user.id, { lastLoginAt: new Date() });
 
+      // Get user memberships to determine role
+      const memberships = await storage.getUserMemberships(user.id);
+      const allRoles = memberships.flatMap(m => m.roles);
+
+      let role = 'USER';
+      if (allRoles.includes('ADMIN')) {
+        role = 'ADMIN';
+      } else if (allRoles.includes('AGENT')) {
+        role = 'AGENT';
+      }
+
       const token = generateToken(user.id);
 
       res.json({
@@ -329,6 +336,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           username: user.username,
           name: user.name,
           orgId: user.orgId,
+          role: role,
         },
       });
     } catch (error) {

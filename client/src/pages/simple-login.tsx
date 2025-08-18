@@ -87,12 +87,8 @@ export default function LoginPage() {
                 <p className="text-xs text-blue-600">admin / admin123</p>
               </div>
               <div>
-                <p className="text-sm text-blue-700 font-medium">Agente:</p>
-                <p className="text-xs text-blue-600">agent / admin123</p>
-              </div>
-              <div>
                 <p className="text-sm text-blue-700 font-medium">Usuário Convencional:</p>
-                <p className="text-xs text-blue-600">user / admin123</p>
+                <p className="text-xs text-blue-600">usuario / 123456</p>
               </div>
             </div>
           </div>

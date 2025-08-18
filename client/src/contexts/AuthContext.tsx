@@ -75,13 +75,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
     localStorage.setItem('token', token);
     setToken(token);
     setUser(user);
-    
-    // Navegação automática baseada no role
-    if (user.role === 'AGENT' || user.role === 'ADMIN') {
-      window.location.href = '/support';
-    } else {
-      window.location.href = '/tickets';
-    }
   };
 
   const logout = () => {
