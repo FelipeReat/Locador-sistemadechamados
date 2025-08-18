@@ -58,25 +58,8 @@ app.use(simpleRoutes);
     await setupVite(app, server);
   }
 
-  // Create admin user for testing
-  try {
-    const { storage } = await import('./simple-storage');
-    const adminExists = await storage.getUserByEmail('admin@servicedesk.com');
-
-    if (!adminExists) {
-      const bcrypt = await import('bcrypt');
-      const hashedPassword = await bcrypt.default.hash('admin123', 10);
-
-      await storage.createUser({
-        email: 'admin@servicedesk.com',
-        name: 'Administrator',
-        password: hashedPassword,
-        role: 'ADMIN'
-      });
-
-      log('Admin user created: admin@servicedesk.com / admin123');
-    }
-  } catch (error) {
-    log('Database not yet available for seeding admin user');
-  }
+  log('🚀 Service Desk System iniciado com sucesso!');
+  log('📋 Credenciais de teste:');
+  log('   - Admin: admin / admin123');
+  log('   - Usuário: usuario / 123456');
 })();

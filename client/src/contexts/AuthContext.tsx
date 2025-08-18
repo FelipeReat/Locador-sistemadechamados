@@ -1,7 +1,9 @@
+
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
 interface User {
   id: string;
+  username: string;
   name: string;
   email: string;
   role: 'USER' | 'AGENT' | 'ADMIN';
@@ -36,22 +38,25 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   useEffect(() => {
     if (token) {
-      // Verify token validity
+      // Verificar validade do token
       fetch('/api/auth/me', {
         headers: { Authorization: `Bearer ${token}` }
       })
-      .then(res => res.json())
-      .then(data => {
-        if (data.id) {
-          setUser(data);
-        } else {
-          localStorage.removeItem('token');
-          setToken(null);
+      .then(res => {
+        if (res.ok) {
+          return res.json();
         }
+        throw new Error('Token inválido');
       })
-      .catch(() => {
+      .then(userData => {
+        setUser(userData);
+        console.log('Usuário autenticado:', userData.username, 'Role:', userData.role);
+      })
+      .catch(error => {
+        console.error('Erro ao verificar token:', error);
         localStorage.removeItem('token');
         setToken(null);
+        setUser(null);
       })
       .finally(() => setIsLoading(false));
     } else {
@@ -60,27 +65,49 @@ export function AuthProvider({ children }: AuthProviderProps) {
   }, [token]);
 
   const login = async (username: string, password: string) => {
-    const response = await fetch('/api/auth/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, password }),
-    });
+    try {
+      console.log('Tentando fazer login com:', username);
+      
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password }),
+      });
 
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message);
+      if (!response.ok) {
+        const error = await response.json();
+        console.error('Erro no login:', error);
+        throw new Error(error.message || 'Erro no login');
+      }
+
+      const { user, token } = await response.json();
+      
+      console.log('Login bem-sucedido:', user.username, 'Role:', user.role);
+      
+      localStorage.setItem('token', token);
+      setToken(token);
+      setUser(user);
+      
+      // Navegação baseada no role
+      setTimeout(() => {
+        if (user.role === 'ADMIN' || user.role === 'AGENT') {
+          window.location.href = '/support';
+        } else {
+          window.location.href = '/tickets';
+        }
+      }, 100);
+
+    } catch (error) {
+      console.error('Erro no login:', error);
+      throw error;
     }
-
-    const { user, token } = await response.json();
-    localStorage.setItem('token', token);
-    setToken(token);
-    setUser(user);
   };
 
   const logout = () => {
     localStorage.removeItem('token');
     setToken(null);
     setUser(null);
+    window.location.href = '/login';
   };
 
   return (

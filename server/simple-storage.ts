@@ -1,246 +1,196 @@
-import { neon } from '@neondatabase/serverless';
-import { drizzle } from 'drizzle-orm/neon-http';
-import { eq, desc, and, or } from 'drizzle-orm';
-import { users, tickets, comments, attachments } from '../shared/simple-schema';
-import type { User, Ticket, Comment, Attachment, InsertUser, InsertTicket, InsertComment, InsertAttachment, TicketWithDetails } from '../shared/simple-schema';
 
-const sql = neon(process.env.DATABASE_URL || 'postgresql://user:password@localhost:5432/servicedesk');
-export const db = drizzle(sql);
+import bcrypt from 'bcrypt';
 
-export class SimpleStorage {
-  // Users
-  async createUser(data: InsertUser): Promise<User> {
-    const [user] = await db.insert(users).values(data).returning();
+interface User {
+  id: string;
+  username: string;
+  name: string;
+  email: string;
+  password: string;
+  role: 'USER' | 'AGENT' | 'ADMIN';
+  createdAt: Date;
+}
+
+interface Ticket {
+  id: string;
+  userId: string;
+  title: string;
+  description: string;
+  status: 'NEW' | 'IN_PROGRESS' | 'RESOLVED' | 'CLOSED';
+  priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
+  assignedTo?: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+class SimpleStorage {
+  private users: Map<string, User> = new Map();
+  private tickets: Map<string, Ticket> = new Map();
+
+  constructor() {
+    this.initializeData();
+  }
+
+  private async initializeData() {
+    try {
+      // Criar usuários padrão
+      const adminPassword = await bcrypt.hash('admin123', 10);
+      const userPassword = await bcrypt.hash('123456', 10);
+
+      const admin: User = {
+        id: 'admin-1',
+        username: 'admin',
+        name: 'Administrador',
+        email: 'admin@servicedesk.com',
+        password: adminPassword,
+        role: 'ADMIN',
+        createdAt: new Date()
+      };
+
+      const user: User = {
+        id: 'user-1',
+        username: 'usuario',
+        name: 'Usuário Convencional',
+        email: 'usuario@servicedesk.com',
+        password: userPassword,
+        role: 'USER',
+        createdAt: new Date()
+      };
+
+      this.users.set(admin.id, admin);
+      this.users.set(user.id, user);
+
+      // Criar tickets de exemplo
+      const ticket1: Ticket = {
+        id: 'ticket-1',
+        userId: user.id,
+        title: 'Problema com e-mail',
+        description: 'Não consigo acessar minha conta de e-mail corporativo',
+        status: 'NEW',
+        priority: 'MEDIUM',
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+
+      const ticket2: Ticket = {
+        id: 'ticket-2',
+        userId: user.id,
+        title: 'Solicitação de acesso',
+        description: 'Preciso de acesso ao sistema de vendas',
+        status: 'IN_PROGRESS',
+        priority: 'HIGH',
+        assignedTo: admin.id,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+
+      this.tickets.set(ticket1.id, ticket1);
+      this.tickets.set(ticket2.id, ticket2);
+
+      console.log('✅ Dados inicializados com sucesso');
+      console.log('📋 Usuários criados:');
+      console.log('   - Admin: admin / admin123');
+      console.log('   - Usuário: usuario / 123456');
+
+    } catch (error) {
+      console.error('❌ Erro ao inicializar dados:', error);
+    }
+  }
+
+  // Métodos de usuário
+  async getUserById(id: string): Promise<User | undefined> {
+    return this.users.get(id);
+  }
+
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    for (const user of this.users.values()) {
+      if (user.username === username) {
+        return user;
+      }
+    }
+    return undefined;
+  }
+
+  async getUserByEmail(email: string): Promise<User | undefined> {
+    for (const user of this.users.values()) {
+      if (user.email === email) {
+        return user;
+      }
+    }
+    return undefined;
+  }
+
+  async createUser(userData: Omit<User, 'id' | 'createdAt'>): Promise<User> {
+    const id = 'user-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+    const user: User = {
+      ...userData,
+      id,
+      createdAt: new Date()
+    };
+
+    this.users.set(id, user);
     return user;
   }
 
-  async getUserById(id: string): Promise<User | null> {
-    const [user] = await db.select().from(users).where(eq(users.id, id));
-    return user || null;
-  }
-
-  async getUserByEmail(email: string): Promise<User | null> {
-    const [user] = await db.select().from(users).where(eq(users.email, email));
-    return user || null;
-  }
-
   async getAgents(): Promise<User[]> {
-    const agents = await db.select({
-      id: users.id,
-      name: users.name,
-      email: users.email,
-      role: users.role
-    }).from(users).where(or(eq(users.role, 'AGENT'), eq(users.role, 'ADMIN')));
+    const agents: User[] = [];
+    for (const user of this.users.values()) {
+      if (user.role === 'AGENT' || user.role === 'ADMIN') {
+        const { password, ...userWithoutPassword } = user;
+        agents.push(userWithoutPassword as User);
+      }
+    }
     return agents;
   }
 
-  async getUsers(): Promise<User[]> {
-    return await db.select().from(users).where(eq(users.isActive, true));
-  }
-
-  async getAgents(): Promise<User[]> {
-    return await db.select().from(users).where(and(
-      eq(users.isActive, true),
-      eq(users.role, 'AGENT')
-    ));
-  }
-
-  // Tickets
-  async createTicket(data: InsertTicket): Promise<Ticket> {
-    const [ticket] = await db.insert(tickets).values(data).returning();
-    return ticket;
-  }
-
-  async getTicketById(id: string): Promise<TicketWithDetails | null> {
-    const [ticket] = await db.select().from(tickets).where(eq(tickets.id, id));
-    if (!ticket) return null;
-
-    const [requester] = await db.select({
-      id: users.id,
-      name: users.name,
-      email: users.email
-    }).from(users).where(eq(users.id, ticket.requesterId));
-
-    let assignee = null;
-    if (ticket.assigneeId) {
-      const [assigneeData] = await db.select({
-        id: users.id,
-        name: users.name,
-        email: users.email
-      }).from(users).where(eq(users.id, ticket.assigneeId));
-      assignee = assigneeData;
-    }
-
-    const ticketComments = await db.select({
-      id: comments.id,
-      ticketId: comments.ticketId,
-      userId: comments.userId,
-      content: comments.content,
-      createdAt: comments.createdAt,
-      userName: users.name,
-      userEmail: users.email
-    }).from(comments)
-      .leftJoin(users, eq(comments.userId, users.id))
-      .where(eq(comments.ticketId, id))
-      .orderBy(comments.createdAt);
-
-    const ticketAttachments = await db.select().from(attachments).where(eq(attachments.ticketId, id));
-
-    return {
-      ...ticket,
-      requester,
-      assignee,
-      comments: ticketComments.map(c => ({
-        id: c.id,
-        ticketId: c.ticketId,
-        userId: c.userId,
-        content: c.content,
-        createdAt: c.createdAt,
-        user: {
-          id: c.userId,
-          name: c.userName || '',
-          email: c.userEmail || ''
-        }
-      })),
-      attachments: ticketAttachments
-    };
-  }
-
-  async getTickets(): Promise<TicketWithDetails[]> {
-    const allTickets = await db.select().from(tickets).orderBy(desc(tickets.createdAt));
-    
-    const ticketsWithDetails = await Promise.all(
-      allTickets.map(async (ticket) => {
-        const [requester] = await db.select({
-          id: users.id,
-          name: users.name,
-          email: users.email
-        }).from(users).where(eq(users.id, ticket.requesterId));
-
-        let assignee = null;
-        if (ticket.assigneeId) {
-          const [assigneeData] = await db.select({
-            id: users.id,
-            name: users.name,
-            email: users.email
-          }).from(users).where(eq(users.id, ticket.assigneeId));
-          assignee = assigneeData;
-        }
-
-        return {
-          ...ticket,
-          requester,
-          assignee,
-          comments: [],
-          attachments: []
-        };
-      })
-    );
-
-    return ticketsWithDetails;
+  // Métodos de ticket
+  async getTicketById(id: string): Promise<Ticket | undefined> {
+    return this.tickets.get(id);
   }
 
   async getAllTickets(): Promise<Ticket[]> {
-    const allTickets = await db.select().from(tickets).orderBy(desc(tickets.createdAt));
-    
-    const ticketsWithDetails = await Promise.all(
-      allTickets.map(async (ticket) => {
-        const [requester] = await db.select().from(users).where(eq(users.id, ticket.requesterId));
-        const assignee = ticket.assigneeId 
-          ? (await db.select().from(users).where(eq(users.id, ticket.assigneeId)))[0]
-          : null;
-        
-        const ticketComments = await db.select({
-          id: comments.id,
-          content: comments.content,
-          createdAt: comments.createdAt,
-          user: {
-            id: users.id,
-            name: users.name,
-            email: users.email
-          }
-        })
-        .from(comments)
-        .leftJoin(users, eq(comments.userId, users.id))
-        .where(eq(comments.ticketId, ticket.id))
-        .orderBy(comments.createdAt);
-
-        return {
-          ...ticket,
-          requester: requester ? { id: requester.id, name: requester.name, email: requester.email } : null,
-          assignee: assignee ? { id: assignee.id, name: assignee.name, email: assignee.email } : null,
-          comments: ticketComments,
-          attachments: []
-        };
-      })
+    return Array.from(this.tickets.values()).sort((a, b) => 
+      b.createdAt.getTime() - a.createdAt.getTime()
     );
-
-    return ticketsWithDetails;
   }
 
-  async getTicketsByUser(userId: string): Promise<Ticket[]> {
-    const userTickets = await db.select().from(tickets)
-      .where(eq(tickets.requesterId, userId))
-      .orderBy(desc(tickets.createdAt));
-    
-    const ticketsWithDetails = await Promise.all(
-      userTickets.map(async (ticket) => {
-        const [requester] = await db.select().from(users).where(eq(users.id, ticket.requesterId));
-        const assignee = ticket.assigneeId 
-          ? (await db.select().from(users).where(eq(users.id, ticket.assigneeId)))[0]
-          : null;
-        
-        const ticketComments = await db.select({
-          id: comments.id,
-          content: comments.content,
-          createdAt: comments.createdAt,
-          user: {
-            id: users.id,
-            name: users.name,
-            email: users.email
-          }
-        })
-        .from(comments)
-        .leftJoin(users, eq(comments.userId, users.id))
-        .where(eq(comments.ticketId, ticket.id))
-        .orderBy(comments.createdAt);
-
-        return {
-          ...ticket,
-          requester: requester ? { id: requester.id, name: requester.name, email: requester.email } : null,
-          assignee: assignee ? { id: assignee.id, name: assignee.name, email: assignee.email } : null,
-          comments: ticketComments,
-          attachments: []
-        };
-      })
-    );
-
-    return ticketsWithDetails;
+  async getTicketsByUserId(userId: string): Promise<Ticket[]> {
+    const userTickets: Ticket[] = [];
+    for (const ticket of this.tickets.values()) {
+      if (ticket.userId === userId) {
+        userTickets.push(ticket);
+      }
+    }
+    return userTickets.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
   }
 
-  async updateTicket(id: string, data: Partial<InsertTicket>): Promise<Ticket | null> {
-    const [ticket] = await db.update(tickets)
-      .set({ ...data, updatedAt: new Date() })
-      .where(eq(tickets.id, id))
-      .returning();
-    return ticket || null;
+  async createTicket(ticketData: Omit<Ticket, 'id' | 'createdAt' | 'updatedAt'>): Promise<Ticket> {
+    const id = 'ticket-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+    const ticket: Ticket = {
+      ...ticketData,
+      id,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+
+    this.tickets.set(id, ticket);
+    return ticket;
   }
 
-  // Comments
-  async addComment(data: InsertComment): Promise<Comment> {
-    const [comment] = await db.insert(comments).values(data).returning();
-    return comment;
-  }
+  async updateTicket(id: string, updates: Partial<Ticket>): Promise<Ticket | undefined> {
+    const ticket = this.tickets.get(id);
+    if (!ticket) {
+      return undefined;
+    }
 
-  // Attachments
-  async addAttachment(data: InsertAttachment): Promise<Attachment> {
-    const [attachment] = await db.insert(attachments).values(data).returning();
-    return attachment;
-  }
+    const updatedTicket: Ticket = {
+      ...ticket,
+      ...updates,
+      updatedAt: new Date()
+    };
 
-  async getAttachment(id: string): Promise<Attachment | null> {
-    const [attachment] = await db.select().from(attachments).where(eq(attachments.id, id));
-    return attachment || null;
+    this.tickets.set(id, updatedTicket);
+    return updatedTicket;
   }
 }
 

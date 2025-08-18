@@ -1,24 +1,17 @@
 
-import { Router, Switch, Route, Redirect } from 'wouter';
+import { Route, Switch, Redirect } from 'wouter';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { AuthProvider, useAuth } from './contexts/AuthContext';
-import { Toaster } from './components/ui/toaster';
+import { Toaster } from '@/components/ui/toaster';
+import { AuthProvider, useAuth } from '@/contexts/AuthContext';
 
-// Simple pages
-import LoginPage from './pages/simple-login';
-import TicketsPage from './pages/simple-tickets';
-import CreateTicketPage from './pages/simple-create-ticket';
-import TicketDetailPage from './pages/simple-ticket-detail';
-import SupportDashboard from './pages/support-dashboard';
+// Pages
+import LoginPage from '@/pages/simple-login';
+import TicketsPage from '@/pages/simple-tickets';
+import CreateTicketPage from '@/pages/simple-create-ticket';
+import TicketDetailPage from '@/pages/simple-ticket-detail';
+import SupportDashboardPage from '@/pages/support-dashboard';
 
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      retry: 1,
-      refetchOnWindowFocus: false,
-    },
-  },
-});
+const queryClient = new QueryClient();
 
 function AppContent() {
   const { user, isLoading } = useAuth();
@@ -26,44 +19,54 @@ function AppContent() {
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="text-lg">Carregando...</div>
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-2 text-gray-600">Carregando...</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <Router>
-      <Switch>
-        <Route path="/login">
-          {user ? <Redirect to={user.role === 'ADMIN' || user.role === 'AGENT' ? '/support' : '/tickets'} /> : <LoginPage />}
-        </Route>
-        
-        <Route path="/tickets">
-          {!user ? <Redirect to="/login" /> : <TicketsPage />}
-        </Route>
-        
-        <Route path="/tickets/create">
-          {!user ? <Redirect to="/login" /> : <CreateTicketPage />}
-        </Route>
-        
-        <Route path="/tickets/:id">
-          {!user ? <Redirect to="/login" /> : <TicketDetailPage />}
-        </Route>
-        
-        <Route path="/support">
-          {!user ? <Redirect to="/login" /> : 
-           (user.role === 'ADMIN' || user.role === 'AGENT') ? <SupportDashboard /> : <Redirect to="/tickets" />}
-        </Route>
+    <Switch>
+      <Route path="/login">
+        {user ? <Redirect to={user.role === 'USER' ? '/tickets' : '/support'} /> : <LoginPage />}
+      </Route>
+      
+      <Route path="/tickets" nest>
+        {!user ? (
+          <Redirect to="/login" />
+        ) : (
+          <Switch>
+            <Route path="/" component={TicketsPage} />
+            <Route path="/create" component={CreateTicketPage} />
+            <Route path="/:id" component={TicketDetailPage} />
+          </Switch>
+        )}
+      </Route>
 
-        <Route>
-          {!user ? <Redirect to="/login" /> : <Redirect to={user.role === 'ADMIN' || user.role === 'AGENT' ? '/support' : '/tickets'} />}
-        </Route>
-      </Switch>
-    </Router>
+      <Route path="/support">
+        {!user ? (
+          <Redirect to="/login" />
+        ) : user.role === 'USER' ? (
+          <Redirect to="/tickets" />
+        ) : (
+          <SupportDashboardPage />
+        )}
+      </Route>
+
+      <Route path="/">
+        {user ? (
+          <Redirect to={user.role === 'USER' ? '/tickets' : '/support'} />
+        ) : (
+          <Redirect to="/login" />
+        )}
+      </Route>
+    </Switch>
   );
 }
 
-export default function App() {
+function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
@@ -75,3 +78,5 @@ export default function App() {
     </QueryClientProvider>
   );
 }
+
+export default App;

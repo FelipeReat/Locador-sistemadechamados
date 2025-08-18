@@ -1,19 +1,19 @@
-import { Router } from 'express';
+
+import express from 'express';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import { storage } from './simple-storage';
-import { insertUserSchema, insertTicketSchema, insertCommentSchema } from '../shared/simple-schema';
 
-export const router = Router();
+const router = express.Router();
+const JWT_SECRET = process.env.JWT_SECRET || 'simple-service-desk-secret';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'simple-secret-key';
+// Middleware de autenticação
+const authenticateToken = async (req: any, res: any, next: any) => {
+  const authHeader = req.headers.authorization;
+  const token = authHeader && authHeader.split(' ')[1];
 
-// Middleware for authentication
-const requireAuth = async (req: any, res: any, next: any) => {
-  const token = req.headers.authorization?.replace('Bearer ', '');
-  
   if (!token) {
-    return res.status(401).json({ message: 'Access token required' });
+    return res.status(401).json({ message: 'Token de acesso requerido' });
   }
 
   try {
@@ -21,192 +21,199 @@ const requireAuth = async (req: any, res: any, next: any) => {
     const user = await storage.getUserById(decoded.userId);
     
     if (!user) {
-      return res.status(401).json({ message: 'Invalid token' });
+      return res.status(403).json({ message: 'Usuário não encontrado' });
     }
-    
+
     req.user = user;
     next();
   } catch (error) {
-    return res.status(401).json({ message: 'Invalid token' });
+    return res.status(403).json({ message: 'Token inválido' });
   }
 };
 
-// Auth routes
-router.post('/api/auth/register', async (req, res) => {
-  try {
-    const userData = insertUserSchema.parse(req.body);
-    const hashedPassword = await bcrypt.hash(userData.password, 10);
-    
-    const user = await storage.createUser({
-      ...userData,
-      password: hashedPassword
-    });
-
-    const token = jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: '24h' });
-    
-    res.json({
-      user: { id: user.id, name: user.name, email: user.email, role: user.role },
-      token
-    });
-  } catch (error: any) {
-    res.status(400).json({ message: error.message });
-  }
-});
-
+// Login
 router.post('/api/auth/login', async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { username, password } = req.body;
+
+    if (!username || !password) {
+      return res.status(400).json({ message: 'Username e senha são obrigatórios' });
+    }
+
+    console.log('Tentativa de login para:', username);
+
+    // Buscar usuário
+    const user = await storage.getUserByUsername(username);
     
-    const user = await storage.getUserByEmail(email);
     if (!user) {
-      return res.status(401).json({ message: 'Invalid credentials' });
+      console.log('Usuário não encontrado:', username);
+      return res.status(401).json({ message: 'Credenciais inválidas' });
     }
 
-    const isValidPassword = await bcrypt.compare(password, user.password);
-    if (!isValidPassword) {
-      return res.status(401).json({ message: 'Invalid credentials' });
-    }
+    console.log('Usuário encontrado:', user.username, 'Role:', user.role);
 
-    const token = jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: '24h' });
+    // Verificar senha
+    const isPasswordValid = await bcrypt.compare(password, user.password);
     
+    if (!isPasswordValid) {
+      console.log('Senha inválida para usuário:', username);
+      return res.status(401).json({ message: 'Credenciais inválidas' });
+    }
+
+    // Gerar token
+    const token = jwt.sign(
+      { userId: user.id, username: user.username, role: user.role },
+      JWT_SECRET,
+      { expiresIn: '7d' }
+    );
+
+    console.log('Login bem-sucedido para:', username, 'Role:', user.role);
+
+    // Retornar dados do usuário sem a senha
+    const { password: _, ...userWithoutPassword } = user;
+
     res.json({
-      user: { id: user.id, name: user.name, email: user.email, role: user.role },
+      user: userWithoutPassword,
       token
     });
-  } catch (error: any) {
-    res.status(500).json({ message: error.message });
+
+  } catch (error) {
+    console.error('Erro no login:', error);
+    res.status(500).json({ message: 'Erro interno do servidor' });
   }
 });
 
-router.get('/api/auth/me', requireAuth, async (req: any, res) => {
-  const { password, ...userWithoutPassword } = req.user;
+// Verificar token atual
+router.get('/api/auth/me', authenticateToken, (req: any, res) => {
+  const { password: _, ...userWithoutPassword } = req.user;
   res.json(userWithoutPassword);
 });
 
-// Ticket routes
-router.get('/api/tickets', requireAuth, async (req: any, res) => {
+// Logout
+router.post('/api/auth/logout', (req, res) => {
+  // Como estamos usando JWT, o logout é feito no cliente removendo o token
+  res.json({ message: 'Logout realizado com sucesso' });
+});
+
+// Buscar tickets do usuário atual
+router.get('/api/tickets', authenticateToken, async (req: any, res) => {
   try {
-    const userId = req.user?.id;
-    const userRole = req.user?.role;
+    const user = req.user;
+    let tickets;
+
+    if (user.role === 'ADMIN' || user.role === 'AGENT') {
+      // Admin e agentes veem todos os tickets
+      tickets = await storage.getAllTickets();
+    } else {
+      // Usuários convencionais veem apenas seus próprios tickets
+      tickets = await storage.getTicketsByUserId(user.id);
+    }
+
+    res.json(tickets);
+  } catch (error) {
+    console.error('Erro ao buscar tickets:', error);
+    res.status(500).json({ message: 'Erro ao buscar tickets' });
+  }
+});
+
+// Buscar todos os tickets (apenas para admin/agent)
+router.get('/api/tickets/all', authenticateToken, async (req: any, res) => {
+  try {
+    const user = req.user;
     
-    if (!userId) {
-      return res.status(401).json({ message: 'Unauthorized' });
+    if (user.role !== 'ADMIN' && user.role !== 'AGENT') {
+      return res.status(403).json({ message: 'Acesso negado' });
     }
 
-    // Usuários convencionais só veem seus próprios chamados
-    if (userRole === 'USER') {
-      const tickets = await storage.getTicketsByUser(userId);
-      return res.json(tickets);
-    }
-
-    // Agentes e admins veem todos os chamados
     const tickets = await storage.getAllTickets();
     res.json(tickets);
-  } catch (error: any) {
-    res.status(500).json({ message: error.message });
+  } catch (error) {
+    console.error('Erro ao buscar todos os tickets:', error);
+    res.status(500).json({ message: 'Erro ao buscar tickets' });
   }
 });
 
-// Route específica para suporte ver todos os chamados
-router.get('/api/tickets/all', requireAuth, async (req: any, res) => {
+// Criar ticket
+router.post('/api/tickets', authenticateToken, async (req: any, res) => {
   try {
-    const userRole = req.user?.role;
-    
-    if (userRole !== 'AGENT' && userRole !== 'ADMIN') {
-      return res.status(403).json({ message: 'Access denied' });
-    }
-
-    const tickets = await storage.getAllTickets();
-    res.json(tickets);
-  } catch (error: any) {
-    res.status(500).json({ message: error.message });
-  }
-});
-
-router.get('/api/tickets/:id', requireAuth, async (req: any, res) => {
-  try {
-    const ticket = await storage.getTicketById(req.params.id);
-    if (!ticket) {
-      return res.status(404).json({ message: 'Ticket not found' });
-    }
-    res.json(ticket);
-  } catch (error: any) {
-    res.status(500).json({ message: error.message });
-  }
-});
-
-router.post('/api/tickets', requireAuth, async (req: any, res) => {
-  try {
-    const ticketData = insertTicketSchema.parse({
+    const user = req.user;
+    const ticketData = {
       ...req.body,
-      requesterId: req.user.id
-    });
-    
-    const ticket = await storage.createTicket(ticketData);
-    const fullTicket = await storage.getTicketById(ticket.id);
-    
-    res.status(201).json(fullTicket);
-  } catch (error: any) {
-    res.status(400).json({ message: error.message });
-  }
-});
-
-router.put('/api/tickets/:id', requireAuth, async (req: any, res) => {
-  try {
-    const updates = req.body;
-    
-    // Only agents and admins can assign tickets
-    if (updates.assigneeId && !['AGENT', 'ADMIN'].includes(req.user.role)) {
-      return res.status(403).json({ message: 'Permission denied' });
-    }
-    
-    const ticket = await storage.updateTicket(req.params.id, updates);
-    if (!ticket) {
-      return res.status(404).json({ message: 'Ticket not found' });
-    }
-    
-    const fullTicket = await storage.getTicketById(ticket.id);
-    res.json(fullTicket);
-  } catch (error: any) {
-    res.status(400).json({ message: error.message });
-  }
-});
-
-// Comment routes
-router.post('/api/tickets/:id/comments', requireAuth, async (req: any, res) => {
-  try {
-    const commentData = insertCommentSchema.parse({
-      ...req.body,
-      ticketId: req.params.id,
-      userId: req.user.id
-    });
-    
-    const comment = await storage.addComment(commentData);
-    
-    // Return comment with user info
-    const commentWithUser = {
-      ...comment,
-      user: {
-        id: req.user.id,
-        name: req.user.name,
-        email: req.user.email
-      }
+      userId: user.id,
+      status: 'NEW'
     };
-    
-    res.status(201).json(commentWithUser);
-  } catch (error: any) {
-    res.status(400).json({ message: error.message });
+
+    const ticket = await storage.createTicket(ticketData);
+    res.status(201).json(ticket);
+  } catch (error) {
+    console.error('Erro ao criar ticket:', error);
+    res.status(500).json({ message: 'Erro ao criar ticket' });
   }
 });
 
-// Users routes
-router.get('/api/users/agents', requireAuth, async (req: any, res) => {
+// Buscar ticket específico
+router.get('/api/tickets/:id', authenticateToken, async (req: any, res) => {
   try {
+    const user = req.user;
+    const ticketId = req.params.id;
+
+    const ticket = await storage.getTicketById(ticketId);
+    
+    if (!ticket) {
+      return res.status(404).json({ message: 'Ticket não encontrado' });
+    }
+
+    // Verificar permissões
+    if (user.role !== 'ADMIN' && user.role !== 'AGENT' && ticket.userId !== user.id) {
+      return res.status(403).json({ message: 'Acesso negado' });
+    }
+
+    res.json(ticket);
+  } catch (error) {
+    console.error('Erro ao buscar ticket:', error);
+    res.status(500).json({ message: 'Erro ao buscar ticket' });
+  }
+});
+
+// Atualizar ticket
+router.put('/api/tickets/:id', authenticateToken, async (req: any, res) => {
+  try {
+    const user = req.user;
+    const ticketId = req.params.id;
+
+    const ticket = await storage.getTicketById(ticketId);
+    
+    if (!ticket) {
+      return res.status(404).json({ message: 'Ticket não encontrado' });
+    }
+
+    // Verificar permissões para atualização
+    if (user.role !== 'ADMIN' && user.role !== 'AGENT') {
+      return res.status(403).json({ message: 'Apenas agentes e administradores podem atualizar tickets' });
+    }
+
+    const updatedTicket = await storage.updateTicket(ticketId, req.body);
+    res.json(updatedTicket);
+  } catch (error) {
+    console.error('Erro ao atualizar ticket:', error);
+    res.status(500).json({ message: 'Erro ao atualizar ticket' });
+  }
+});
+
+// Buscar agentes (para assignar tickets)
+router.get('/api/users/agents', authenticateToken, async (req: any, res) => {
+  try {
+    const user = req.user;
+    
+    if (user.role !== 'ADMIN' && user.role !== 'AGENT') {
+      return res.status(403).json({ message: 'Acesso negado' });
+    }
+
     const agents = await storage.getAgents();
-    const agentsWithoutPassword = agents.map(({ password, ...agent }) => agent);
-    res.json(agentsWithoutPassword);
-  } catch (error: any) {
-    res.status(500).json({ message: error.message });
+    res.json(agents);
+  } catch (error) {
+    console.error('Erro ao buscar agentes:', error);
+    res.status(500).json({ message: 'Erro ao buscar agentes' });
   }
 });
 
