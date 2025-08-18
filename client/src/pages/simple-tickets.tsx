@@ -68,7 +68,7 @@ export default function TicketList() {
                 </Button>
               )}
               <span className="text-sm text-gray-600">
-                Olá, <span className="font-medium">{user?.name}</span>
+                Olá, <span className="font-medium">{user?.role === 'AGENT' ? 'Agente Suporte' : user?.role === 'ADMIN' ? 'Administrador' : 'Usuário'}</span> {user?.name}
               </span>
               <Button variant="outline" onClick={logout} data-testid="button-logout">
                 Sair

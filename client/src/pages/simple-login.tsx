@@ -6,20 +6,22 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { LogIn } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 export default function LoginPage() {
-  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const { login } = useAuth();
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
     try {
-      await login(email, password);
+      await login(username, password);
       toast({
         title: 'Login realizado com sucesso',
         description: 'Bem-vindo ao sistema de chamados!',
@@ -50,15 +52,15 @@ export default function LoginPage() {
         <CardContent className="space-y-4">
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="username">Nome de Usuário</Label>
               <Input
-                id="email"
-                type="email"
-                placeholder="seu@email.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                id="username"
+                type="text"
+                placeholder="Seu nome de usuário"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
                 required
-                data-testid="input-email"
+                data-testid="input-username"
               />
             </div>
             <div className="space-y-2">
@@ -76,17 +78,21 @@ export default function LoginPage() {
               {isLoading ? 'Entrando...' : 'Entrar'}
             </Button>
           </form>
-          
+
           <div className="mt-6 p-4 bg-blue-50 rounded-lg">
             <p className="text-sm text-blue-800 font-medium">Credenciais de teste:</p>
             <div className="mt-2 space-y-1">
               <div>
                 <p className="text-sm text-blue-700 font-medium">Admin/Suporte:</p>
-                <p className="text-xs text-blue-600">admin@servicedesk.com / admin123</p>
+                <p className="text-xs text-blue-600">admin / admin123</p>
               </div>
               <div>
                 <p className="text-sm text-blue-700 font-medium">Agente:</p>
-                <p className="text-xs text-blue-600">agent@servicedesk.com / admin123</p>
+                <p className="text-xs text-blue-600">agent / admin123</p>
+              </div>
+              <div>
+                <p className="text-sm text-blue-700 font-medium">Usuário Convencional:</p>
+                <p className="text-xs text-blue-600">user / admin123</p>
               </div>
             </div>
           </div>

@@ -55,13 +55,20 @@ export default function Login() {
   const onLogin = async (data: LoginFormData) => {
     setIsLoading(true);
     try {
-      await authService.login(data.username, data.password);
+      const user = await authService.login(data.username, data.password);
       toast({
         title: "Login realizado com sucesso",
         description: "Bem-vindo ao ServiceDesk Pro!",
       });
-      // Force page reload to trigger authentication check
-      window.location.href = "/dashboard";
+      // Redirect based on user role
+      if (user.role === 'USER') {
+        setLocation('/tickets');
+      } else if (user.role === 'AGENT' || user.role === 'ADMIN') {
+        setLocation('/support');
+      } else {
+        // Fallback or error handling if role is not recognized
+        setLocation('/dashboard'); 
+      }
     } catch (error) {
       toast({
         title: "Erro no login",
@@ -108,7 +115,7 @@ export default function Login() {
             Sistema de chamados corporativo
           </CardDescription>
         </CardHeader>
-        
+
         <CardContent>
           <Tabs defaultValue="login" className="space-y-4">
             <TabsList className="grid w-full grid-cols-2">
@@ -135,7 +142,7 @@ export default function Login() {
                       </FormItem>
                     )}
                   />
-                  
+
                   <FormField
                     control={loginForm.control}
                     name="password"

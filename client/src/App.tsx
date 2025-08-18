@@ -49,10 +49,15 @@ function AppContent() {
           </Route>
           
           <Route path="/">
-            {user 
-              ? (user.role === 'AGENT' || user.role === 'ADMIN' ? <Redirect to="/support" /> : <Redirect to="/tickets" />)
-              : <Redirect to="/login" />
-            }
+            {user ? <Redirect to="/dashboard" /> : <Redirect to="/login" />}
+          </Route>
+          
+          <Route path="/dashboard">
+            {user ? (
+              user.role === 'AGENT' || user.role === 'ADMIN' 
+                ? <Redirect to="/support" /> 
+                : <Redirect to="/tickets" />
+            ) : <Redirect to="/login" />}
           </Route>
         </Switch>
       </Router>
