@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useToast } from '@/hooks/use-toast';
-import { Zap, Terminal, Clock, CheckCircle, User, ArrowRight, Menu, Settings, UserPlus, BarChart3, FileText, Shield, Bell, Power, Activity, Users } from 'lucide-react';
+import { Ticket, Users, Clock, CheckCircle, User, ArrowRight, Menu, Settings, UserPlus, BarChart3, FileText, Shield, Bell } from 'lucide-react';
 
 const priorityColors = {
   LOW: 'bg-green-100 text-green-800 border-green-200',
@@ -17,10 +17,10 @@ const priorityColors = {
 };
 
 const statusConfig = {
-  OPEN: { label: 'Abertos', color: 'text-neon-cyan', icon: Zap },
-  IN_PROGRESS: { label: 'Em Andamento', color: 'text-neon-yellow', icon: Clock },
-  RESOLVED: { label: 'Resolvidos', color: 'text-neon-green', icon: CheckCircle },
-  CLOSED: { label: 'Fechados', color: 'text-muted-foreground', icon: CheckCircle },
+  OPEN: { label: 'Abertos', color: 'text-blue-600', icon: Ticket },
+  IN_PROGRESS: { label: 'Em Andamento', color: 'text-purple-600', icon: Clock },
+  RESOLVED: { label: 'Resolvidos', color: 'text-green-600', icon: CheckCircle },
+  CLOSED: { label: 'Fechados', color: 'text-gray-600', icon: CheckCircle },
 };
 
 export default function SupportDashboard() {
@@ -102,49 +102,46 @@ export default function SupportDashboard() {
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-4 border-primary mx-auto neon-border"></div>
-          <p className="mt-4 font-cyber text-primary">CARREGANDO DASHBOARD...</p>
-        </div>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Cyberpunk Header */}
-      <header className="cyber-card border-b-2 border-primary/30 backdrop-blur-lg sticky top-0 z-50">
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <header className="bg-white shadow">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
-            <div className="flex items-center gap-6">
-              {/* Revolutionary Menu */}
+          <div className="flex justify-between items-center py-6">
+            <div className="flex items-center gap-4">
+              {/* Menu Dropdown */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="sm" className="h-12 w-12 p-0 neon-border bg-primary/10 hover:bg-primary/20">
-                    <Terminal className="h-5 w-5 text-primary" />
+                  <Button variant="outline" size="sm" className="h-10 w-10 p-0">
+                    <Menu className="h-4 w-4" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="start" className="w-64 cyber-card border-primary/30">
-                  <DropdownMenuItem className="cursor-pointer font-cyber text-neon-cyan">
-                    <BarChart3 className="mr-3 h-4 w-4" />
-                    <span>ANALYTICS</span>
+                <DropdownMenuContent align="start" className="w-56">
+                  <DropdownMenuItem className="cursor-pointer">
+                    <BarChart3 className="mr-2 h-4 w-4" />
+                    <span>Análises</span>
                   </DropdownMenuItem>
-                  <DropdownMenuItem className="cursor-pointer font-cyber text-neon-yellow">
-                    <Shield className="mr-3 h-4 w-4" />
-                    <span>SECURITY AUDIT</span>
+                  <DropdownMenuItem className="cursor-pointer">
+                    <Shield className="mr-2 h-4 w-4" />
+                    <span>Auditoria</span>
                   </DropdownMenuItem>
-                  <DropdownMenuItem className="cursor-pointer font-cyber text-neon-green">
-                    <Bell className="mr-3 h-4 w-4" />
-                    <span>AUTO SYSTEMS</span>
+                  <DropdownMenuItem className="cursor-pointer">
+                    <Bell className="mr-2 h-4 w-4" />
+                    <span>Automações</span>
                   </DropdownMenuItem>
-                  <DropdownMenuSeparator className="border-primary/30" />
-                  <DropdownMenuItem className="cursor-pointer font-cyber">
-                    <Settings className="mr-3 h-4 w-4" />
-                    <span>CONFIG</span>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem className="cursor-pointer">
+                    <Settings className="mr-2 h-4 w-4" />
+                    <span>Configurações</span>
                   </DropdownMenuItem>
-                  <DropdownMenuItem className="cursor-pointer font-cyber">
-                    <UserPlus className="mr-3 h-4 w-4" />
-                    <span>USER MGMT</span>
+                  <DropdownMenuItem className="cursor-pointer">
+                    <UserPlus className="mr-2 h-4 w-4" />
+                    <span>Gerenciar Usuários</span>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem className="cursor-pointer">
@@ -155,31 +152,23 @@ export default function SupportDashboard() {
               </DropdownMenu>
 
               <div className="flex items-center">
-                <div className="neon-border rounded-full p-3 bg-primary/10 mr-4">
-                  <Activity className="h-8 w-8 text-primary" />
-                </div>
+                <Users className="h-8 w-8 text-blue-600 mr-3" />
                 <div>
-                  <h1 className="text-3xl font-display neon-text" data-text="NEXUS CONTROL">NEXUS CONTROL</h1>
-                  <p className="font-cyber text-muted-foreground">// Sistema de Comando Central //</p>
+                  <h1 className="text-2xl font-bold text-gray-900">Dashboard de Suporte</h1>
+                  <p className="text-gray-600">Gerenciamento de chamados</p>
                 </div>
               </div>
             </div>
-            <div className="flex items-center gap-6">
-              <Badge className="bg-primary/20 text-primary border-primary font-cyber px-3 py-2">
-                <Shield className="h-4 w-4 mr-2" />
+            <div className="flex items-center gap-4">
+              <Badge variant="secondary">
+                <User className="h-3 w-3 mr-1" />
                 {user?.role}
               </Badge>
-              <span className="font-cyber text-foreground text-lg">
+              <span className="text-sm text-gray-600">
                 {user?.name}
               </span>
-              <Button 
-                variant="outline" 
-                onClick={logout} 
-                data-testid="button-logout"
-                className="neon-button font-cyber bg-danger/20 border-danger hover:bg-danger/30"
-              >
-                <Power className="h-4 w-4 mr-2" />
-                LOGOUT
+              <Button variant="outline" onClick={logout} data-testid="button-logout">
+                Sair
               </Button>
             </div>
           </div>
@@ -188,92 +177,84 @@ export default function SupportDashboard() {
 
       {/* Stats */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <Card className="cyber-card border-2 border-primary/30 hover:border-primary/50 transition-all duration-300">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+          <Card>
             <CardContent className="p-6">
               <div className="flex items-center">
-                <div className="neon-border rounded-full p-3 bg-primary/10">
-                  <Activity className="h-8 w-8 text-primary" />
-                </div>
-                <div className="ml-6">
-                  <p className="text-sm font-cyber text-muted-foreground">TOTAL TICKETS</p>
-                  <p className="text-3xl font-display neon-text">{stats.total}</p>
+                <Ticket className="h-8 w-8 text-blue-600" />
+                <div className="ml-4">
+                  <p className="text-sm font-medium text-gray-600">Total</p>
+                  <p className="text-2xl font-bold text-gray-900">{stats.total}</p>
                 </div>
               </div>
             </CardContent>
           </Card>
           
-          <Card className="cyber-card border-2 border-neon-cyan/30 hover:border-neon-cyan/50 transition-all duration-300">
+          <Card>
             <CardContent className="p-6">
               <div className="flex items-center">
-                <div className="neon-border rounded-full p-3 bg-neon-cyan/10">
-                  <Zap className="h-8 w-8 text-neon-cyan" />
-                </div>
-                <div className="ml-6">
-                  <p className="text-sm font-cyber text-muted-foreground">ACTIVE</p>
-                  <p className="text-3xl font-display text-neon-cyan">{stats.open}</p>
+                <Ticket className="h-8 w-8 text-blue-600" />
+                <div className="ml-4">
+                  <p className="text-sm font-medium text-gray-600">Abertos</p>
+                  <p className="text-2xl font-bold text-blue-600">{stats.open}</p>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="cyber-card border-2 border-neon-yellow/30 hover:border-neon-yellow/50 transition-all duration-300">
+          <Card>
             <CardContent className="p-6">
               <div className="flex items-center">
-                <div className="neon-border rounded-full p-3 bg-neon-yellow/10">
-                  <Clock className="h-8 w-8 text-neon-yellow" />
-                </div>
-                <div className="ml-6">
-                  <p className="text-sm font-cyber text-muted-foreground">IN PROGRESS</p>
-                  <p className="text-3xl font-display text-neon-yellow">{stats.inProgress}</p>
+                <Clock className="h-8 w-8 text-purple-600" />
+                <div className="ml-4">
+                  <p className="text-sm font-medium text-gray-600">Em Andamento</p>
+                  <p className="text-2xl font-bold text-purple-600">{stats.inProgress}</p>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="cyber-card border-2 border-neon-green/30 hover:border-neon-green/50 transition-all duration-300">
+          <Card>
             <CardContent className="p-6">
               <div className="flex items-center">
-                <div className="neon-border rounded-full p-3 bg-neon-green/10">
-                  <CheckCircle className="h-8 w-8 text-neon-green" />
-                </div>
-                <div className="ml-6">
-                  <p className="text-sm font-cyber text-muted-foreground">RESOLVED</p>
-                  <p className="text-3xl font-display text-neon-green">{stats.resolved}</p>
+                <CheckCircle className="h-8 w-8 text-green-600" />
+                <div className="ml-4">
+                  <p className="text-sm font-medium text-gray-600">Resolvidos</p>
+                  <p className="text-2xl font-bold text-green-600">{stats.resolved}</p>
                 </div>
               </div>
             </CardContent>
           </Card>
         </div>
 
-        {/* Revolutionary Kanban Board */}
+        {/* Kanban Board */}
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           {Object.entries(statusConfig).map(([status, config]) => {
             const statusTickets = getTicketsByStatus(status);
             const Icon = config.icon;
             
             return (
-              <div key={status} className="cyber-card border-2 border-primary/30 hover:border-primary/50 transition-all duration-300">
-                <div className="p-4 border-b border-primary/30">
+              <div key={status} className="bg-white rounded-lg shadow">
+                <div className="p-4 border-b border-gray-200">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center">
-                      <Icon className={`h-6 w-6 ${config.color} mr-3`} />
-                      <h3 className="font-cyber text-foreground text-lg">{config.label}</h3>
+                      <Icon className={`h-5 w-5 ${config.color} mr-2`} />
+                      <h3 className="font-semibold text-gray-900">{config.label}</h3>
                     </div>
-                    <Badge className="bg-primary/20 text-primary border-primary font-cyber">{statusTickets.length}</Badge>
+                    <Badge variant="secondary">{statusTickets.length}</Badge>
                   </div>
                 </div>
                 
-                <div className="p-4 space-y-4 max-h-96 overflow-y-auto">
+                <div className="p-4 space-y-3 max-h-96 overflow-y-auto">
                   {statusTickets.map((ticket: any) => (
-                    <Card key={ticket.id} className="cyber-card border-l-4 border-l-primary hover:shadow-lg hover:shadow-primary/20 transition-all duration-300">
+                    <Card key={ticket.id} className="border-l-4 border-l-blue-500 hover:shadow-md transition-shadow">
                       <CardContent className="p-4">
                         <div className="space-y-3">
                           <div className="flex justify-between items-start">
-                            <h4 className="font-cyber text-foreground text-sm truncate pr-2" data-testid={`kanban-ticket-${ticket.id}`}>
+                            <h4 className="font-medium text-sm text-gray-900 truncate pr-2" data-testid={`kanban-ticket-${ticket.id}`}>
                               {ticket.title}
                             </h4>
-                            <Badge className={`priority-${ticket.priority.toLowerCase()}`}>
+                            <Badge className={priorityColors[ticket.priority as keyof typeof priorityColors]}>
                               {ticket.priority}
                             </Badge>
                           </div>
