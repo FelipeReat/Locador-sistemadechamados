@@ -77,10 +77,10 @@ export default {
         warning: {
           DEFAULT: "hsl(var(--warning))",
           foreground: "hsl(var(--warning-foreground))",
-          50: "hsl(38 92% 95%)",
-          100: "hsl(38 92% 90%)",
-          500: "hsl(38 92% 50%)",
-          600: "hsl(38 92% 45%)",
+          50: "hsl(24 95% 95%)",
+          100: "hsl(24 95% 90%)",
+          500: "hsl(24 95% 53%)",
+          600: "hsl(24 95% 48%)",
         },
         danger: {
           DEFAULT: "hsl(var(--danger))",
@@ -95,7 +95,6 @@ export default {
           purple: "hsl(var(--neon-purple))",
           green: "hsl(var(--neon-green))",
           pink: "hsl(var(--neon-pink))",
-          yellow: "hsl(var(--neon-yellow))",
         },
       },
       fontFamily: {

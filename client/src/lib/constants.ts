@@ -36,8 +36,8 @@ export const PRIORITY_COLORS = {
 
 export const STATUS_COLORS = {
   NEW: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200',
-  TRIAGE: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200',
-  IN_PROGRESS: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200',
+  TRIAGE: 'bg-cyan-100 text-cyan-800 dark:bg-cyan-900 dark:text-cyan-200',
+  IN_PROGRESS: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
   WAITING_CUSTOMER: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
   WAITING_APPROVAL: 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200',
   ON_HOLD: 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200',

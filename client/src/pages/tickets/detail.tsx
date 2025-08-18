@@ -16,7 +16,7 @@ import { ptBR } from "date-fns/locale";
 const statusColors = {
   'NEW': 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
   'TRIAGE': 'bg-cyan-100 text-cyan-800 dark:bg-cyan-900 dark:text-cyan-200',
-  'IN_PROGRESS': 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200',
+  'IN_PROGRESS': 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
   'WAITING_APPROVAL': 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200',
   'WAITING_CUSTOMER': 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200',
   'ON_HOLD': 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200',

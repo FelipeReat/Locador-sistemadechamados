@@ -44,7 +44,7 @@ export default function TicketTimeline({ events }: TicketTimelineProps) {
       case 'ASSIGNED':
         return 'bg-green-100 text-green-600 dark:bg-green-900 dark:text-green-200';
       case 'STATUS_CHANGED':
-        return 'bg-yellow-100 text-yellow-600 dark:bg-yellow-900 dark:text-yellow-200';
+        return 'bg-blue-100 text-blue-600 dark:bg-blue-900 dark:text-blue-200';
       case 'COMMENT_ADDED':
         return 'bg-purple-100 text-purple-600 dark:bg-purple-900 dark:text-purple-200';
       case 'ESCALATED':
