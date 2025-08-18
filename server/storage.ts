@@ -275,7 +275,7 @@ export class MemStorage implements IStorage {
     const catalogItems: ServiceCatalog[] = [
       {
         id: "cat-1",
-        orgId: org.id,
+        orgId: "org-1",
         name: "Solicitação de Hardware",
         description: "Solicitação de equipamentos, manutenção e substituição",
         category: "Hardware",
@@ -284,8 +284,9 @@ export class MemStorage implements IStorage {
         requiresApproval: true,
         formJson: {
           fields: [
-            { name: "equipment_type", label: "Tipo de Equipamento", type: "select", required: true },
+            { name: "equipment_type", label: "Tipo de Equipamento", type: "select", required: true, options: ["Notebook", "Desktop", "Monitor", "Impressora", "Mouse", "Teclado"] },
             { name: "justification", label: "Justificativa", type: "textarea", required: true },
+            { name: "urgency", label: "Urgência", type: "select", required: true, options: ["Baixa", "Média", "Alta"] }
           ]
         },
         isActive: true,
@@ -294,7 +295,7 @@ export class MemStorage implements IStorage {
       },
       {
         id: "cat-2",
-        orgId: org.id,
+        orgId: "org-1",
         name: "Acesso a Sistemas",
         description: "Liberação de acesso, criação de usuários e permissões",
         category: "Segurança",
@@ -303,14 +304,95 @@ export class MemStorage implements IStorage {
         requiresApproval: true,
         formJson: {
           fields: [
-            { name: "system", label: "Sistema", type: "select", required: true },
-            { name: "access_level", label: "Nível de Acesso", type: "select", required: true },
+            { name: "system", label: "Sistema", type: "select", required: true, options: ["ERP", "CRM", "RH", "Financeiro", "E-mail"] },
+            { name: "access_level", label: "Nível de Acesso", type: "select", required: true, options: ["Leitura", "Escrita", "Administrador"] },
+            { name: "department", label: "Departamento", type: "select", required: true, options: ["TI", "RH", "Financeiro", "Vendas"] }
           ]
         },
         isActive: true,
         createdAt: new Date(),
         updatedAt: new Date(),
       },
+      {
+        id: "cat-3",
+        orgId: "org-1",
+        name: "Suporte de Software",
+        description: "Instalação, configuração e suporte de aplicativos",
+        category: "Software",
+        subcategory: "Aplicativos",
+        defaultPriority: "P3",
+        requiresApproval: false,
+        formJson: {
+          fields: [
+            { name: "software_name", label: "Nome do Software", type: "text", required: true },
+            { name: "version", label: "Versão", type: "text", required: false },
+            { name: "business_need", label: "Necessidade do Negócio", type: "textarea", required: true }
+          ]
+        },
+        isActive: true,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      {
+        id: "cat-4",
+        orgId: "org-1",
+        name: "Problemas de Rede",
+        description: "Resolução de problemas de conectividade e rede",
+        category: "Infraestrutura",
+        subcategory: "Rede",
+        defaultPriority: "P2",
+        requiresApproval: false,
+        formJson: {
+          fields: [
+            { name: "problem_type", label: "Tipo do Problema", type: "select", required: true, options: ["Sem Internet", "Lentidão", "Wi-Fi", "VPN"] },
+            { name: "location", label: "Localização", type: "text", required: true },
+            { name: "users_affected", label: "Usuários Afetados", type: "number", required: true }
+          ]
+        },
+        isActive: true,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      {
+        id: "cat-5",
+        orgId: "org-1",
+        name: "Backup e Recuperação",
+        description: "Solicitações de backup e recuperação de dados",
+        category: "Infraestrutura",
+        subcategory: "Backup",
+        defaultPriority: "P1",
+        requiresApproval: true,
+        formJson: {
+          fields: [
+            { name: "data_type", label: "Tipo de Dados", type: "select", required: true, options: ["Arquivos pessoais", "Banco de dados", "Sistema completo"] },
+            { name: "date_range", label: "Período", type: "text", required: true },
+            { name: "reason", label: "Motivo", type: "textarea", required: true }
+          ]
+        },
+        isActive: true,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      {
+        id: "cat-6",
+        orgId: "org-1",
+        name: "Treinamento",
+        description: "Solicitações de treinamento em sistemas e ferramentas",
+        category: "Capacitação",
+        subcategory: "Treinamento",
+        defaultPriority: "P4",
+        requiresApproval: false,
+        formJson: {
+          fields: [
+            { name: "training_topic", label: "Tópico do Treinamento", type: "text", required: true },
+            { name: "participants", label: "Número de Participantes", type: "number", required: true },
+            { name: "preferred_date", label: "Data Preferida", type: "date", required: false }
+          ]
+        },
+        isActive: true,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      }
     ];
 
     catalogItems.forEach(item => this.serviceCatalog.set(item.id, item));
