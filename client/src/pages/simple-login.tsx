@@ -129,14 +129,14 @@ export default function LoginPage() {
                 className="cursor-pointer hover:bg-primary/10 p-3 rounded-lg border border-primary/30 transition-all duration-300 hover:shadow-lg hover:shadow-primary/50"
                 onClick={() => fillCredentials('admin', 'admin123')}
               >
-                <p className="text-sm font-cyber text-neon-cyan font-bold">ADMIN SYSTEM:</p>
+                <p className="text-sm font-cyber text-sky-400 font-bold">ADMIN SYSTEM:</p>
                 <p className="text-xs font-mono text-muted-foreground">admin / admin123</p>
               </div>
               <div 
                 className="cursor-pointer hover:bg-primary/10 p-3 rounded-lg border border-primary/30 transition-all duration-300 hover:shadow-lg hover:shadow-primary/50"
                 onClick={() => fillCredentials('usuario', '123456')}
               >
-                <p className="text-sm font-cyber text-neon-yellow font-bold">USER ACCESS:</p>
+                <p className="text-sm font-cyber text-emerald-400 font-bold">USER ACCESS:</p>
                 <p className="text-xs font-mono text-muted-foreground">usuario / 123456</p>
               </div>
             </div>
