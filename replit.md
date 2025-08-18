@@ -5,6 +5,7 @@ This is a simplified Service Desk ticketing system built as a full-stack TypeScr
 # User Preferences
 
 Preferred communication style: Simple, everyday language.
+Visual Design: Simple, clean design with pastel colors and conventional fonts (Inter, Roboto). No extraordinary styling or cyberpunk themes.
 
 # System Architecture
 
@@ -38,8 +39,8 @@ Preferred communication style: Simple, everyday language.
 - **Basic Status Tracking**: Open, In Progress, Resolved, Closed
 - **Team Assignment**: Simple assignment to support team members
 - **File Attachments**: Basic file upload support for tickets
-- **Revolutionary Design**: Cyberpunk-inspired dark theme with neon accents and futuristic typography
-- **Enhanced UI/UX**: Modern glassmorphism effects, animated elements, and responsive design
+- **Clean Design**: Simple, professional design with soft pastel colors and conventional typography
+- **Accessible UI/UX**: Clean interface with excellent readability and intuitive navigation
 
 ## Security Architecture
 - **Authentication**: Secure JWT implementation with token expiration
@@ -57,9 +58,9 @@ Preferred communication style: Simple, everyday language.
 - **Radix UI**: Headless UI components for accessibility and functionality
 - **Tailwind CSS**: Utility-first CSS framework for responsive design
 - **Lucide React**: Icon library for consistent iconography
-- **Revolutionary Design System**: Custom cyberpunk theme with neon colors, glassmorphism effects
-- **Advanced Typography**: Orbitron, Rajdhani, and Space Grotesk fonts for futuristic aesthetics
-- **Animated Components**: CSS animations, glitch effects, and neon glow animations
+- **Clean Design System**: Soft pastel color palette with excellent contrast and readability
+- **Professional Typography**: Inter and Roboto fonts for clean, readable interface
+- **Simple Components**: Minimal styling with focus on usability and accessibility
 
 ## Development and Build Tools
 - **Vite**: Fast development server and build tool
