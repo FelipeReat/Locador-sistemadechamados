@@ -50,8 +50,8 @@ export default function Dashboard() {
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-4">
           <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">Dashboard</h1>
-          <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200 dark:bg-green-900 dark:text-green-200">
-            <div className="w-2 h-2 bg-green-500 rounded-full mr-1"></div>
+          <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-900/20 dark:text-emerald-300">
+            <div className="w-2 h-2 bg-emerald-400 rounded-full mr-1"></div>
             Sistema Operacional
           </Badge>
         </div>
@@ -65,8 +65,8 @@ export default function Dashboard() {
           change="-12% vs. semana passada"
           changeType="positive"
           icon={TicketIcon}
-          iconColor="text-blue-600"
-          iconBgColor="bg-blue-100 dark:bg-blue-900"
+          iconColor="text-sky-600"
+          iconBgColor="bg-sky-50 dark:bg-sky-900/20"
         />
 
         <MetricCard
@@ -76,7 +76,7 @@ export default function Dashboard() {
           changeType="negative"
           icon={AlertTriangleIcon}
           iconColor="text-orange-600"
-          iconBgColor="bg-orange-100 dark:bg-orange-900"
+          iconBgColor="bg-orange-50 dark:bg-orange-900/20"
         />
 
         <MetricCard
@@ -85,8 +85,8 @@ export default function Dashboard() {
           change="+18% vs. ontem"
           changeType="positive"
           icon={CheckCircleIcon}
-          iconColor="text-green-600"
-          iconBgColor="bg-green-100 dark:bg-green-900"
+          iconColor="text-emerald-600"
+          iconBgColor="bg-emerald-50 dark:bg-emerald-900/20"
         />
 
         <MetricCard
@@ -95,8 +95,8 @@ export default function Dashboard() {
           change="+0.3 vs. mês passado"
           changeType="positive"
           icon={StarIcon}
-          iconColor="text-purple-600"
-          iconBgColor="bg-purple-100 dark:bg-purple-900"
+          iconColor="text-violet-600"
+          iconBgColor="bg-violet-50 dark:bg-violet-900/20"
         />
       </div>
 
@@ -116,10 +116,10 @@ export default function Dashboard() {
             </CardHeader>
             <CardContent className="space-y-4">
               {[
-                { status: 'NEW', label: 'Novo', count: statusData.NEW || 0, color: 'bg-red-500' },
-                { status: 'IN_PROGRESS', label: 'Em Andamento', count: statusData.IN_PROGRESS || 0, color: 'bg-yellow-500' },
-                { status: 'WAITING_CUSTOMER', label: 'Aguardando Cliente', count: statusData.WAITING_CUSTOMER || 0, color: 'bg-blue-500' },
-                { status: 'WAITING_APPROVAL', label: 'Aguardando Aprovação', count: statusData.WAITING_APPROVAL || 0, color: 'bg-purple-500' },
+                { status: 'NEW', label: 'Novo', count: statusData.NEW || 0, color: 'bg-rose-300' },
+                { status: 'IN_PROGRESS', label: 'Em Andamento', count: statusData.IN_PROGRESS || 0, color: 'bg-violet-300' },
+                { status: 'WAITING_CUSTOMER', label: 'Aguardando Cliente', count: statusData.WAITING_CUSTOMER || 0, color: 'bg-sky-300' },
+                { status: 'WAITING_APPROVAL', label: 'Aguardando Aprovação', count: statusData.WAITING_APPROVAL || 0, color: 'bg-purple-300' },
               ].map(({ status, label, count, color }) => {
                 const percentage = (totalTickets as number) > 0 ? (count / (totalTickets as number)) * 100 : 0;
                 return (

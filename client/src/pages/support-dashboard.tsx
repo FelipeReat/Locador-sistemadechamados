@@ -8,10 +8,10 @@ import { useToast } from '@/hooks/use-toast';
 import { Home, Ticket, Clock, CheckCircle, User, BarChart3, Settings, FileText, Users } from 'lucide-react';
 
 const priorityColors = {
-  LOW: 'bg-green-100 text-green-800',
-  MEDIUM: 'bg-blue-100 text-blue-800',
-  HIGH: 'bg-orange-100 text-orange-800',
-  URGENT: 'bg-red-100 text-red-800',
+  LOW: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+  MEDIUM: 'bg-sky-50 text-sky-700 border-sky-200',
+  HIGH: 'bg-orange-50 text-orange-700 border-orange-200',
+  URGENT: 'bg-rose-50 text-rose-700 border-rose-200',
 };
 
 const statusConfig = {
