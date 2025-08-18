@@ -32,7 +32,7 @@ function AppContent() {
       <Router>
         <Switch>
           <Route path="/login">
-            {user ? <Redirect to="/tickets" /> : <LoginPage />}
+            {user ? <Redirect to="/dashboard" /> : <LoginPage />}
           </Route>
           
           <Route path="/tickets">
