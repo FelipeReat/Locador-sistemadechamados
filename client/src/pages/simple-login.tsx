@@ -37,6 +37,15 @@ export default function LoginPage() {
     }
   };
 
+  const fillCredentials = (user: string, pass: string) => {
+    setUsername(user);
+    setPassword(pass);
+    toast({
+      title: 'Credenciais preenchidas',
+      description: 'Clique em "Entrar" para fazer login',
+    });
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
       <Card className="w-full max-w-md">
@@ -82,14 +91,23 @@ export default function LoginPage() {
           <div className="mt-6 p-4 bg-blue-50 rounded-lg">
             <p className="text-sm text-blue-800 font-medium">Credenciais de teste:</p>
             <div className="mt-2 space-y-1">
-              <div>
+              <div 
+                className="cursor-pointer hover:bg-blue-100 p-1 rounded"
+                onClick={() => fillCredentials('admin', 'admin123')}
+              >
                 <p className="text-sm text-blue-700 font-medium">Admin/Suporte:</p>
                 <p className="text-xs text-blue-600">admin / admin123</p>
               </div>
-              <div>
+              <div 
+                className="cursor-pointer hover:bg-blue-100 p-1 rounded"
+                onClick={() => fillCredentials('usuario', '123456')}
+              >
                 <p className="text-sm text-blue-700 font-medium">Usuário Convencional:</p>
                 <p className="text-xs text-blue-600">usuario / 123456</p>
               </div>
+            </div>
+            <div className="mt-3 text-xs text-blue-600">
+              Clique nas credenciais para preencher automaticamente
             </div>
           </div>
         </CardContent>

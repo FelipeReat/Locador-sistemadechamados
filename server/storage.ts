@@ -247,9 +247,9 @@ export class MemStorage implements IStorage {
     const conventionalUser: User = {
         id: "user-3",
         orgId: org.id,
-        username: "reporter.user",
+        username: "usuario",
         name: "Usuário Convencional",
-        password: "$2b$10$anotherhash", // password for conventional user
+        password: "$2b$10$K7L/VxwMwP8v2QvQh5F5a.JQ9QwQo4XkJ7GUKxJQoJ4XKOoOoO4O.", // 123456
         mfaSecret: null,
         locale: "pt-BR",
         timeZone: "America/Sao_Paulo",
@@ -257,8 +257,6 @@ export class MemStorage implements IStorage {
         lastLoginAt: null,
         createdAt: new Date(),
         updatedAt: new Date(),
-        // Add a property to distinguish this user type if needed, e.g., roles or permissions
-        // For now, we'll rely on the absence of agent/admin roles through memberships
     };
 
 
