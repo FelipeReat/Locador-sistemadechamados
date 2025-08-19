@@ -57,12 +57,12 @@ export default function KnowledgeBase() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold text-gray-900 dark:text-white flex items-center">
+          <h1 className="text-2xl font-semibold text-foreground flex items-center">
             <BookOpen className="w-8 h-8 mr-3" />
             Base de Conhecimento
           </h1>
-          <p className="text-gray-600 dark:text-gray-400 mt-2">
-            Encontre soluções e documentações para problemas comuns
+          <p className="text-muted-foreground mt-2">
+            Encontre soluções e documentações para abastecimento
           </p>
         </div>
         <Button onClick={() => setLocation("/knowledge-base/new")}>

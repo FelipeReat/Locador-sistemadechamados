@@ -1,11 +1,19 @@
 # Overview
 
-This is a simplified Service Desk ticketing system built as a full-stack TypeScript application. The system focuses on fast, direct communication between users and support teams with minimal complexity. It provides essential ticket management with a streamlined React frontend, Express backend, and PostgreSQL database using Drizzle ORM.
+This is a fuel supply control system built as a full-stack TypeScript application. The system manages fuel requests, approvals, and supply chain operations with a professional interface designed specifically for fuel management workflows. It provides essential request management with a streamlined React frontend, Express backend, and PostgreSQL database using Drizzle ORM.
 
 # User Preferences
 
 Preferred communication style: Simple, everyday language.
-Visual Design: Simple, clean design with pastel colors and conventional fonts (Inter, Roboto). No extraordinary styling or cyberpunk themes.
+Visual Design: Professional fuel system design using the custom "Sistema de Controle de Abastecimento" color palette with blue primary (hsl(207, 90%, 54%)), clean borders, and business-focused interface. No yellow/amber colors anywhere in the system.
+
+# Recent Changes
+
+✓ Complete visual transformation to fuel system design
+✓ Implemented custom color scheme from design documentation  
+✓ Updated all dashboard components with fuel-specific terminology
+✓ Replaced all yellow/amber colors with professional palette
+✓ Applied clean, business-focused interface throughout system
 
 # System Architecture
 

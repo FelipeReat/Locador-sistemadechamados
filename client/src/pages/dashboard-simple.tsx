@@ -21,8 +21,8 @@ export default function Dashboard() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-4">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Dashboard</h1>
-          <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200 dark:bg-green-900 dark:text-green-200">
+          <h1 className="text-3xl font-bold text-foreground">Dashboard de Abastecimento</h1>
+          <Badge variant="outline" className="bg-green-100 text-green-800 border-green-300">
             <div className="w-2 h-2 bg-green-500 rounded-full mr-1"></div>
             Sistema Operacional
           </Badge>
@@ -38,33 +38,33 @@ export default function Dashboard() {
 
       {/* Metrics Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card className="bg-white dark:bg-gray-800 shadow-sm hover:shadow-md transition-shadow">
+        <Card className="border border-border bg-card shadow-sm hover:shadow-md transition-shadow">
           <CardContent className="flex items-center p-6">
             <div className="flex items-center space-x-4">
-              <div className="bg-blue-100 dark:bg-blue-900 p-3 rounded-lg">
-                <TicketIcon className="h-6 w-6 text-blue-600 dark:text-blue-300" />
+              <div className="bg-primary/10 p-3 rounded-lg">
+                <TicketIcon className="h-6 w-6 text-primary" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                <p className="text-2xl font-bold text-foreground">
                   {mockData.metrics.totalTickets}
                 </p>
-                <p className="text-sm text-gray-500 dark:text-gray-400">Total de Chamados</p>
+                <p className="text-sm text-muted-foreground">Total de Requisições</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-white dark:bg-gray-800 shadow-sm hover:shadow-md transition-shadow">
+        <Card className="border border-border bg-card shadow-sm hover:shadow-md transition-shadow">
           <CardContent className="flex items-center p-6">
             <div className="flex items-center space-x-4">
-              <div className="bg-red-100 dark:bg-red-900 p-3 rounded-lg">
-                <AlertTriangleIcon className="h-6 w-6 text-red-600 dark:text-red-300" />
+              <div className="bg-orange-100 p-3 rounded-lg">
+                <AlertTriangleIcon className="h-6 w-6" style={{ color: 'hsl(35, 91%, 58%)' }} />
               </div>
               <div>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                <p className="text-2xl font-bold text-foreground">
                   {mockData.metrics.openTickets}
                 </p>
-                <p className="text-sm text-gray-500 dark:text-gray-400">Em Aberto</p>
+                <p className="text-sm text-muted-foreground">Pendentes</p>
               </div>
             </div>
           </CardContent>

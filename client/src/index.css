@@ -7,50 +7,49 @@
 
 @layer base {
   :root {
-    /* Modern Professional Color Palette */
-    --background: 248 250 252; /* slate-50 */
-    --foreground: 15 23 42; /* slate-900 */
-    --card: 255 255 255; /* white */
-    --card-foreground: 15 23 42;
-    --popover: 255 255 255;
-    --popover-foreground: 15 23 42;
+    /* Base Colors - Sistema de Controle de Abastecimento */
+    --background: 0 0% 100%; /* white */
+    --foreground: 20 14.3% 4.1%; /* quase preto */
+    --card: 0 0% 100%; /* white */
+    --card-foreground: 20 14.3% 4.1%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 20 14.3% 4.1%;
     
-    /* Primary - Modern Blue */
-    --primary: 59 130 246; /* blue-500 */
-    --primary-foreground: 255 255 255;
+    /* Primary - Azul Principal */
+    --primary: 207 90% 54%; /* Azul sistema de combustível */
+    --primary-foreground: 210 40% 98%;
     
-    /* Secondary - Elegant Purple */
-    --secondary: 139 92 246; /* violet-500 */
-    --secondary-foreground: 255 255 255;
+    /* Secondary - Neutros */
+    --secondary: 0 0% 96.1%;
+    --secondary-foreground: 0 0% 9%;
     
-    /* Accent - Success Green */
-    --accent: 16 185 129; /* emerald-500 */
-    --accent-foreground: 255 255 255;
+    /* Accent - Interface */
+    --accent: 0 0% 96.1%;
+    --accent-foreground: 0 0% 9%;
     
     /* Neutral Tones */
-    --muted: 241 245 249; /* slate-100 */
-    --muted-foreground: 100 116 139; /* slate-500 */
-    --border: 226 232 240; /* slate-200 */
-    --input: 255 255 255; /* white */
-    --ring: 59 130 246; /* blue-500 */
-    --radius: 0.75rem;
+    --muted: 0 0% 96.1%;
+    --muted-foreground: 0 0% 45.1%;
+    --border: 0 0% 89.8%;
+    --input: 0 0% 89.8%;
+    --ring: 207 90% 54%; /* Azul principal */
+    --radius: 0.5rem;
 
-    /* Status Colors - Professional */
-    --success: 16 185 129; /* emerald-500 */
-    --success-foreground: 255 255 255;
-    --warning: 245 101 101; /* red-400 */
-    --warning-foreground: 255 255 255;
-    --error: 239 68 68; /* red-500 */
-    --error-foreground: 255 255 255;
-    --info: 59 130 246; /* blue-500 */
-    --info-foreground: 255 255 255;
+    /* Status Colors - Sistema de Combustível */
+    --fuel-success: 122 39% 49%; /* Verde - Aprovado */
+    --fuel-warning: 35 91% 58%; /* Amarelo/Laranja - Pendente */
+    --fuel-error: 4 90% 58%; /* Vermelho - Rejeitado */
+    --destructive: 0 84.2% 60.2%; /* Vermelho padrão */
+    --destructive-foreground: 0 0% 98%;
+    --warning: 38 92% 50%;
+    --warning-foreground: 48 96% 8%;
 
-    /* Chart Colors - Modern Palette */
-    --chart-1: 59 130 246; /* blue-500 */
-    --chart-2: 139 92 246; /* violet-500 */
-    --chart-3: 16 185 129; /* emerald-500 */
-    --chart-4: 245 101 101; /* red-400 */
-    --chart-5: 156 163 175; /* gray-400 */
+    /* Chart Colors - Sistema de Combustível */
+    --chart-1: 207 90% 54%; /* Azul Principal */
+    --chart-2: 122 39% 49%; /* Verde Sucesso */
+    --chart-3: 35 91% 58%; /* Amarelo Aviso */
+    --chart-4: 4 90% 58%; /* Vermelho Erro */
+    --chart-5: 0 0% 45.1%; /* Cinza Neutro */
 
     /* Sidebar */
     --sidebar: 30 41 59; /* slate-800 */

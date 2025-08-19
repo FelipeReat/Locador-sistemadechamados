@@ -106,42 +106,42 @@ export default function SupportDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
+    <div className="min-h-screen bg-background flex">
       {/* Sidebar */}
-      <div className="w-64 bg-blue-600 text-white flex flex-col">
+      <div className="w-64 bg-primary text-primary-foreground flex flex-col">
         <div className="p-6">
-          <h1 className="text-xl font-semibold">Controle de Atendimento</h1>
-          <p className="text-blue-100 text-sm mt-1">Painel</p>
+          <h1 className="text-xl font-semibold">Controle de Abastecimento</h1>
+          <p className="text-primary-foreground/70 text-sm mt-1">Painel</p>
         </div>
         
         <nav className="flex-1 px-4">
           <ul className="space-y-1">
             <li>
-              <div className="flex items-center px-3 py-2 text-sm bg-blue-500 rounded">
+              <div className="flex items-center px-3 py-2 text-sm bg-primary-foreground/20 rounded">
                 <Home className="w-4 h-4 mr-3" />
                 Geral
               </div>
             </li>
             <li>
-              <div className="flex items-center px-3 py-2 text-sm text-blue-100 hover:bg-blue-500 rounded cursor-pointer">
+              <div className="flex items-center px-3 py-2 text-sm text-primary-foreground/70 hover:bg-primary-foreground/20 rounded cursor-pointer">
                 <Ticket className="w-4 h-4 mr-3" />
                 Requisições
               </div>
             </li>
             <li>
-              <div className="flex items-center px-3 py-2 text-sm text-blue-100 hover:bg-blue-500 rounded cursor-pointer">
+              <div className="flex items-center px-3 py-2 text-sm text-primary-foreground/70 hover:bg-primary-foreground/20 rounded cursor-pointer">
                 <BarChart3 className="w-4 h-4 mr-3" />
                 Relatórios
               </div>
             </li>
             <li>
-              <div className="flex items-center px-3 py-2 text-sm text-blue-100 hover:bg-blue-500 rounded cursor-pointer">
+              <div className="flex items-center px-3 py-2 text-sm text-primary-foreground/70 hover:bg-primary-foreground/20 rounded cursor-pointer">
                 <Users className="w-4 h-4 mr-3" />
                 Usuários
               </div>
             </li>
             <li>
-              <div className="flex items-center px-3 py-2 text-sm text-blue-100 hover:bg-blue-500 rounded cursor-pointer">
+              <div className="flex items-center px-3 py-2 text-sm text-primary-foreground/70 hover:bg-primary-foreground/20 rounded cursor-pointer">
                 <Settings className="w-4 h-4 mr-3" />
                 Configurações
               </div>
@@ -149,7 +149,7 @@ export default function SupportDashboard() {
           </ul>
         </nav>
 
-        <div className="p-4 border-t border-blue-500">
+        <div className="p-4 border-t border-primary-foreground/20">
           <div className="flex items-center text-sm">
             <User className="w-4 h-4 mr-2" />
             <span>{user?.name}</span>
@@ -157,7 +157,7 @@ export default function SupportDashboard() {
           <Button 
             size="sm" 
             variant="ghost" 
-            className="w-full mt-2 text-blue-100 hover:bg-blue-500" 
+            className="w-full mt-2 text-primary-foreground/70 hover:bg-primary-foreground/20" 
             onClick={logout} 
             data-testid="button-logout"
           >
@@ -169,11 +169,11 @@ export default function SupportDashboard() {
       {/* Main Content */}
       <div className="flex-1">
         {/* Top Header */}
-        <div className="bg-white border-b px-6 py-4">
+        <div className="bg-card border-b border-border px-6 py-4">
           <div className="flex justify-between items-center">
-            <h2 className="text-2xl font-semibold text-gray-800">Painel</h2>
-            <div className="text-sm text-gray-500">
-              Vista geral das requisições de atendimento
+            <h2 className="text-2xl font-semibold text-foreground">Painel</h2>
+            <div className="text-sm text-muted-foreground">
+              Vista geral das requisições de abastecimento
             </div>
           </div>
         </div>
@@ -181,61 +181,61 @@ export default function SupportDashboard() {
         <div className="p-6">
           {/* Stats Cards */}
           <div className="grid grid-cols-4 gap-6 mb-8">
-            <Card className="card-elevated bg-gradient-to-br from-violet-50 to-indigo-50 border-violet-100">
+            <Card className="border border-border bg-card shadow-sm">
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-gray-600">Total de Requisições</p>
-                    <p className="text-3xl font-bold text-gray-900">{stats.total}</p>
-                    <p className="text-sm text-gray-500 mt-1">Total • Primeira categoria</p>
+                    <p className="text-sm font-medium text-muted-foreground">Total de Requisições</p>
+                    <p className="text-3xl font-bold text-foreground">{stats.total}</p>
+                    <p className="text-sm text-muted-foreground mt-1">Total • Geral</p>
                   </div>
-                  <div className="w-12 h-12 bg-violet-100 rounded-lg flex items-center justify-center">
-                    <Ticket className="w-6 h-6 text-violet-600" />
+                  <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
+                    <Ticket className="w-6 h-6 text-primary" />
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="card-elevated bg-gradient-to-br from-sky-50 to-cyan-50 border-sky-100">
+            <Card className="border border-border bg-card shadow-sm">
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-gray-600">Requisições Pendentes</p>
-                    <p className="text-3xl font-bold text-gray-900">{stats.open}</p>
-                    <p className="text-sm text-gray-500 mt-1">Aguardando aprovação • Alta relevância</p>
+                    <p className="text-sm font-medium text-muted-foreground">Requisições Pendentes</p>
+                    <p className="text-3xl font-bold text-foreground">{stats.open}</p>
+                    <p className="text-sm text-muted-foreground mt-1">Aguardando aprovação</p>
                   </div>
-                  <div className="w-12 h-12 bg-sky-100 rounded-lg flex items-center justify-center">
-                    <Clock className="w-6 h-6 text-sky-600" />
+                  <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
+                    <Clock className="w-6 h-6" style={{ color: 'hsl(35, 91%, 58%)' }} />
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="card-elevated bg-gradient-to-br from-emerald-50 to-green-50 border-emerald-100">
+            <Card className="border border-border bg-card shadow-sm">
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-gray-600">Requisições Aprovadas</p>
-                    <p className="text-3xl font-bold text-gray-900">{stats.resolved}</p>
-                    <p className="text-sm text-gray-500 mt-1">Fim mês • Disponível com sucesso</p>
+                    <p className="text-sm font-medium text-muted-foreground">Requisições Aprovadas</p>
+                    <p className="text-3xl font-bold text-foreground">{stats.resolved}</p>
+                    <p className="text-sm text-muted-foreground mt-1">Aprovadas com sucesso</p>
                   </div>
-                  <div className="w-12 h-12 bg-emerald-100 rounded-lg flex items-center justify-center">
-                    <CheckCircle className="w-6 h-6 text-emerald-600" />
+                  <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                    <CheckCircle className="w-6 h-6" style={{ color: 'hsl(122, 39%, 49%)' }} />
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="card-elevated bg-gradient-to-br from-rose-50 to-pink-50 border-rose-100">
+            <Card className="border border-border bg-card shadow-sm">
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-gray-600">Status Ativo</p>
-                    <p className="text-3xl font-bold text-gray-900">{stats.inProgress}</p>
-                    <p className="text-sm text-gray-500 mt-1">Total enviados • Primeira atualização</p>
+                    <p className="text-sm font-medium text-muted-foreground">Em Atendimento</p>
+                    <p className="text-3xl font-bold text-foreground">{stats.inProgress}</p>
+                    <p className="text-sm text-muted-foreground mt-1">Em processamento</p>
                   </div>
-                  <div className="w-12 h-12 bg-rose-100 rounded-lg flex items-center justify-center">
-                    <BarChart3 className="w-6 h-6 text-rose-600" />
+                  <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
+                    <BarChart3 className="w-6 h-6 text-primary" />
                   </div>
                 </div>
               </CardContent>
@@ -244,43 +244,43 @@ export default function SupportDashboard() {
 
           {/* Ações Rápidas */}
           <div className="grid grid-cols-3 gap-6 mb-8">
-            <Card className="card-elevated bg-gradient-to-r from-violet-600 to-indigo-600 text-white hover:from-violet-700 hover:to-indigo-700 cursor-pointer transition-all">
+            <Card className="bg-primary text-primary-foreground hover:bg-primary/90 cursor-pointer transition-colors shadow-sm border border-border">
               <CardContent className="p-6">
                 <div className="flex items-center">
-                  <div className="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center mr-4">
+                  <div className="w-12 h-12 bg-primary-foreground/20 rounded-lg flex items-center justify-center mr-4">
                     <Ticket className="w-6 h-6" />
                   </div>
                   <div>
                     <h3 className="font-semibold text-lg">Nova Requisição</h3>
-                    <p className="text-violet-100 text-sm">Criar solicitação de atendimento</p>
+                    <p className="text-primary-foreground/70 text-sm">Criar solicitação de abastecimento</p>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="card-elevated bg-gradient-to-r from-sky-50 to-cyan-50 hover:from-sky-100 hover:to-cyan-100 cursor-pointer transition-all border-sky-200">
+            <Card className="border border-border bg-card hover:bg-accent cursor-pointer transition-colors shadow-sm">
               <CardContent className="p-6">
                 <div className="flex items-center">
-                  <div className="w-12 h-12 bg-sky-100 rounded-lg flex items-center justify-center mr-4">
-                    <FileText className="w-6 h-6 text-sky-600" />
+                  <div className="w-12 h-12 bg-muted rounded-lg flex items-center justify-center mr-4">
+                    <FileText className="w-6 h-6 text-muted-foreground" />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-lg text-gray-900">Ver Requisições</h3>
-                    <p className="text-gray-600 text-sm">Gerenciar solicitações</p>
+                    <h3 className="font-semibold text-lg text-foreground">Ver Requisições</h3>
+                    <p className="text-muted-foreground text-sm">Gerenciar solicitações</p>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="card-elevated bg-gradient-to-r from-emerald-50 to-green-50 hover:from-emerald-100 hover:to-green-100 cursor-pointer transition-all border-emerald-200">
+            <Card className="border border-border bg-card hover:bg-accent cursor-pointer transition-colors shadow-sm">
               <CardContent className="p-6">
                 <div className="flex items-center">
-                  <div className="w-12 h-12 bg-emerald-100 rounded-lg flex items-center justify-center mr-4">
-                    <BarChart3 className="w-6 h-6 text-emerald-600" />
+                  <div className="w-12 h-12 bg-muted rounded-lg flex items-center justify-center mr-4">
+                    <BarChart3 className="w-6 h-6 text-muted-foreground" />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-lg text-gray-900">Geração de Ficha</h3>
-                    <p className="text-gray-600 text-sm">Gerar fichas técnicas</p>
+                    <h3 className="font-semibold text-lg text-foreground">Relatórios</h3>
+                    <p className="text-muted-foreground text-sm">Visualizar relatórios</p>
                   </div>
                 </div>
               </CardContent>
@@ -288,20 +288,20 @@ export default function SupportDashboard() {
           </div>
 
           {/* Requisições Recentes */}
-          <Card className="card-elevated">
+          <Card className="border border-border bg-card shadow-sm">
             <CardContent className="p-0">
-              <div className="p-6 border-b border-gray-100">
+              <div className="p-6 border-b border-border">
                 <div className="flex justify-between items-center">
                   <div className="flex items-center space-x-3">
-                    <div className="w-8 h-8 bg-violet-100 rounded-lg flex items-center justify-center">
-                      <Ticket className="w-4 h-4 text-violet-600" />
+                    <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center">
+                      <Ticket className="w-4 h-4 text-primary" />
                     </div>
-                    <h3 className="text-xl font-semibold text-gray-900">Requisições Recentes</h3>
+                    <h3 className="text-xl font-semibold text-foreground">Requisições Recentes</h3>
                   </div>
                   <Button 
                     variant="outline" 
                     size="sm"
-                    className="bg-violet-50 border-violet-200 text-violet-700 hover:bg-violet-100 hover:border-violet-300"
+                    className="border border-input hover:bg-accent hover:text-accent-foreground"
                   >
                     Ver todos
                   </Button>
@@ -312,38 +312,38 @@ export default function SupportDashboard() {
                 <div className="overflow-x-auto">
                   <table className="w-full">
                     <thead>
-                      <tr className="border-b border-gray-200">
-                        <th className="text-left py-3 px-4 text-sm font-medium text-gray-600">ID</th>
-                        <th className="text-left py-3 px-4 text-sm font-medium text-gray-600">SOLICITANTE</th>
-                        <th className="text-left py-3 px-4 text-sm font-medium text-gray-600">FORNECEDORES</th>
-                        <th className="text-left py-3 px-4 text-sm font-medium text-gray-600">TIPO DE COMBUSTÍVEL</th>
-                        <th className="text-left py-3 px-4 text-sm font-medium text-gray-600">QUANTIDADE</th>
-                        <th className="text-left py-3 px-4 text-sm font-medium text-gray-600">STATUS</th>
-                        <th className="text-left py-3 px-4 text-sm font-medium text-gray-600">DATA</th>
-                        <th className="text-left py-3 px-4 text-sm font-medium text-gray-600">AÇÕES</th>
+                      <tr className="border-b border-border">
+                        <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">ID</th>
+                        <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">SOLICITANTE</th>
+                        <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">FORNECEDORES</th>
+                        <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">TIPO DE COMBUSTÍVEL</th>
+                        <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">QUANTIDADE</th>
+                        <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">STATUS</th>
+                        <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">DATA</th>
+                        <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">AÇÕES</th>
                       </tr>
                     </thead>
                   <tbody>
                     {tickets?.slice(0, 5).map((ticket: any) => (
-                      <tr key={ticket.id} className="border-b border-gray-100 hover:bg-gray-50" data-testid={`table-ticket-${ticket.id}`}>
-                        <td className="py-3 px-4 text-sm">{ticket.id}</td>
-                        <td className="py-3 px-4 text-sm">{ticket.requester?.name || 'N/A'}</td>
-                        <td className="py-3 px-4 text-sm">-</td>
-                        <td className="py-3 px-4 text-sm">{ticket.title}</td>
-                        <td className="py-3 px-4 text-sm">-</td>
+                      <tr key={ticket.id} className="border-b border-border hover:bg-muted/50" data-testid={`table-ticket-${ticket.id}`}>
+                        <td className="py-3 px-4 text-sm text-foreground">{ticket.id}</td>
+                        <td className="py-3 px-4 text-sm text-foreground">{ticket.requester?.name || 'N/A'}</td>
+                        <td className="py-3 px-4 text-sm text-muted-foreground">-</td>
+                        <td className="py-3 px-4 text-sm text-foreground">{ticket.title}</td>
+                        <td className="py-3 px-4 text-sm text-muted-foreground">-</td>
                         <td className="py-3 px-4">
                           <Badge 
                             className={`${
-                              ticket.status === 'OPEN' ? 'bg-sky-100 text-sky-800' :
-                              ticket.status === 'IN_PROGRESS' ? 'bg-blue-100 text-blue-800' :
-                              ticket.status === 'RESOLVED' ? 'bg-green-100 text-green-800' :
-                              'bg-gray-100 text-gray-800'
+                              ticket.status === 'OPEN' ? 'bg-orange-100 text-orange-800 border-orange-300' :
+                              ticket.status === 'IN_PROGRESS' ? 'bg-blue-100 text-blue-800 border-blue-300' :
+                              ticket.status === 'RESOLVED' ? 'bg-green-100 text-green-800 border-green-300' :
+                              'bg-gray-100 text-gray-800 border-gray-300'
                             }`}
                           >
                             {statusConfig[ticket.status as keyof typeof statusConfig]?.label}
                           </Badge>
                         </td>
-                        <td className="py-3 px-4 text-sm text-gray-600">
+                        <td className="py-3 px-4 text-sm text-muted-foreground">
                           {new Date(ticket.createdAt).toLocaleDateString('pt-BR')}
                         </td>
                         <td className="py-3 px-4">
@@ -367,7 +367,7 @@ export default function SupportDashboard() {
                       </tr>
                     )) || (
                       <tr>
-                        <td colSpan={8} className="py-8 text-center text-gray-500">
+                        <td colSpan={8} className="py-8 text-center text-muted-foreground">
                           Nenhuma requisição encontrada
                         </td>
                       </tr>

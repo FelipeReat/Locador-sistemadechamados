@@ -58,7 +58,7 @@ export default function Login() {
       const user = await authService.login(data.username, data.password);
       toast({
         title: "Login realizado com sucesso",
-        description: "Bem-vindo ao ServiceDesk Pro!",
+        description: "Bem-vindo ao Sistema de Abastecimento!",
       });
       // Redirect based on user role
       if (user.role === 'USER') {
@@ -86,7 +86,7 @@ export default function Login() {
       await authService.register(data.username, data.password, data.name, data.orgName, data.orgDomain);
       toast({
         title: "Conta criada com sucesso",
-        description: "Bem-vindo ao ServiceDesk Pro!",
+        description: "Bem-vindo ao Sistema de Abastecimento!",
       });
       // Force page reload to trigger authentication check
       window.location.href = "/dashboard";
@@ -102,17 +102,17 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 px-4">
-      <Card className="w-full max-w-md">
+    <div className="min-h-screen flex items-center justify-center bg-background px-4">
+      <Card className="w-full max-w-md border border-border bg-card shadow-sm">
         <CardHeader className="space-y-1 text-center">
           <div className="flex justify-center mb-4">
             <div className="w-12 h-12 bg-primary rounded-lg flex items-center justify-center">
-              <Headset className="w-6 h-6 text-white" />
+              <Headset className="w-6 h-6 text-primary-foreground" />
             </div>
           </div>
-          <CardTitle className="text-2xl font-semibold">ServiceDesk Pro</CardTitle>
-          <CardDescription>
-            Sistema de chamados corporativo
+          <CardTitle className="text-2xl font-semibold text-foreground">Sistema de Abastecimento</CardTitle>
+          <CardDescription className="text-muted-foreground">
+            Sistema de controle de abastecimento
           </CardDescription>
         </CardHeader>
 

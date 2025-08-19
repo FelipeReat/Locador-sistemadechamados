@@ -55,14 +55,14 @@ export default function CreateTicket() {
     onSuccess: (result) => {
       const ticket = result.json();
       toast({
-        title: "Chamado criado com sucesso",
-        description: `Chamado ${ticket.code} foi criado e está sendo processado.`,
+        title: "Requisição criada com sucesso",
+        description: `Requisição ${ticket.code} foi criada e está sendo processada.`,
       });
       setLocation("/tickets");
     },
     onError: (error) => {
       toast({
-        title: "Erro ao criar chamado",
+        title: "Erro ao criar requisição",
         description: error instanceof Error ? error.message : "Erro desconhecido",
         variant: "destructive",
       });
