@@ -20,7 +20,8 @@ import {
   Users,
   BotIcon,
   ClockIcon,
-  SettingsIcon
+  SettingsIcon,
+  KanbanSquareIcon,
 } from "lucide-react";
 
 const navigation = [

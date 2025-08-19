@@ -1,4 +1,3 @@
-
 import { Route, Switch, Redirect } from 'wouter';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from '@/components/ui/toaster';
@@ -9,6 +8,7 @@ import LoginPage from '@/pages/simple-login';
 import TicketsPage from '@/pages/simple-tickets';
 import CreateTicketPage from '@/pages/simple-create-ticket';
 import TicketDetailPage from '@/pages/simple-ticket-detail';
+import KanbanPage from "@/pages/kanban";
 import SupportDashboardPage from '@/pages/support-dashboard';
 
 const queryClient = new QueryClient();
@@ -32,7 +32,7 @@ function AppContent() {
       <Route path="/login">
         {user ? <Redirect to={user.role === 'USER' ? '/tickets' : '/support'} /> : <LoginPage />}
       </Route>
-      
+
       <Route path="/tickets" nest>
         {!user ? (
           <Redirect to="/login" />
@@ -52,6 +52,14 @@ function AppContent() {
           <Redirect to="/tickets" />
         ) : (
           <SupportDashboardPage />
+        )}
+      </Route>
+
+      <Route path="/kanban">
+        {!user ? (
+          <Redirect to="/login" />
+        ) : (
+          <KanbanPage />
         )}
       </Route>
 
